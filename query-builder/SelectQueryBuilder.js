@@ -1778,7 +1778,8 @@ var SelectQueryBuilder = /** @class */ (function (_super) {
      */
     SelectQueryBuilder.prototype.buildColumnAlias = function (aliasName, columnName) {
         var columnAliasName = aliasName + "_" + columnName;
-        if (columnAliasName.length > 29 && this.connection.driver instanceof OracleDriver_1.OracleDriver)
+        if ((columnAliasName.length > 29 && this.connection.driver instanceof OracleDriver_1.OracleDriver) ||
+            (columnAliasName.length > 63 && this.connection.driver instanceof PostgresDriver_1.PostgresDriver))
             return aliasName + "_" + StringUtils_1.abbreviate(columnName, 2);
         return columnAliasName;
     };

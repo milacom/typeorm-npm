@@ -4,6 +4,7 @@ var OrmUtils_1 = require("../../util/OrmUtils");
 var EntityMetadata_1 = require("../../metadata/EntityMetadata");
 var StringUtils_1 = require("../../util/StringUtils");
 var OracleDriver_1 = require("../../driver/oracle/OracleDriver");
+var PostgresDriver_1 = require("../../driver/postgres/PostgresDriver");
 /**
  * Transforms raw sql results returned from the database into entity object.
  * Entity is constructed based on its entity metadata.
@@ -278,7 +279,8 @@ var RawSqlResultsToEntityTransformer = /** @class */ (function () {
      */
     RawSqlResultsToEntityTransformer.prototype.buildColumnAlias = function (aliasName, columnName) {
         var columnAliasName = aliasName + "_" + columnName;
-        if (columnAliasName.length > 29 && this.driver instanceof OracleDriver_1.OracleDriver)
+        if ((columnAliasName.length > 29 && this.driver instanceof OracleDriver_1.OracleDriver) ||
+            (columnAliasName.length > 63 && this.driver instanceof PostgresDriver_1.PostgresDriver))
             return aliasName + "_" + StringUtils_1.abbreviate(columnName, 2);
         return columnAliasName;
     };

@@ -2,6 +2,7 @@ import { OrmUtils } from "../../util/OrmUtils";
 import { EntityMetadata } from "../../metadata/EntityMetadata";
 import { abbreviate } from "../../util/StringUtils";
 import { OracleDriver } from "../../driver/oracle/OracleDriver";
+import { PostgresDriver } from "../../driver/postgres/PostgresDriver";
 /**
  * Transforms raw sql results returned from the database into entity object.
  * Entity is constructed based on its entity metadata.
@@ -276,7 +277,8 @@ var RawSqlResultsToEntityTransformer = /** @class */ (function () {
      */
     RawSqlResultsToEntityTransformer.prototype.buildColumnAlias = function (aliasName, columnName) {
         var columnAliasName = aliasName + "_" + columnName;
-        if (columnAliasName.length > 29 && this.driver instanceof OracleDriver)
+        if ((columnAliasName.length > 29 && this.driver instanceof OracleDriver) ||
+            (columnAliasName.length > 63 && this.driver instanceof PostgresDriver))
             return aliasName + "_" + abbreviate(columnName, 2);
         return columnAliasName;
     };

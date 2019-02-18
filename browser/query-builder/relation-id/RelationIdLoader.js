@@ -35,6 +35,7 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
 };
 import { abbreviate } from "../../util/StringUtils";
 import { OracleDriver } from "../../driver/oracle/OracleDriver";
+import { PostgresDriver } from "../../driver/postgres/PostgresDriver";
 var RelationIdLoader = /** @class */ (function () {
     // -------------------------------------------------------------------------
     // Constructor
@@ -186,7 +187,8 @@ var RelationIdLoader = /** @class */ (function () {
      */
     RelationIdLoader.prototype.buildColumnAlias = function (aliasName, columnName) {
         var columnAliasName = aliasName + "_" + columnName;
-        if (columnAliasName.length > 29 && this.connection.driver instanceof OracleDriver)
+        if ((columnAliasName.length > 29 && this.connection.driver instanceof OracleDriver) ||
+            (columnAliasName.length > 63 && this.connection.driver instanceof PostgresDriver))
             return aliasName + "_" + abbreviate(columnName, 2);
         return columnAliasName;
     };

@@ -39,9 +39,9 @@ exports.titleCase = titleCase;
  */
 function abbreviate(str, abbrLettersCount) {
     if (abbrLettersCount === void 0) { abbrLettersCount = 1; }
-    var words = str.replace(/([a-z\xE0-\xFF])([A-Z\xC0\xDF])/g, "$1 $2").split(" ");
+    var words = str.replace(/([a-z\xE0-\xFF])([A-Z\xC0\xDF]|_)/g, "$1 $2").split(" ");
     return words.reduce(function (res, word) {
-        res += word.substr(0, abbrLettersCount);
+        res += word.replace(/^(_)*/g, "").substr(0, abbrLettersCount);
         return res;
     }, "");
 }
