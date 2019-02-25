@@ -252,9 +252,6 @@ var EntityMetadataBuilder = /** @class */ (function () {
         entityMetadata.ownColumns = this.metadataArgsStorage
             .filterColumns(entityMetadata.inheritanceTree)
             .map(function (args) {
-            // for single table children we reuse columns created for their parents
-            if (entityMetadata.tableType === "entity-child")
-                return entityMetadata.parentEntityMetadata.ownColumns.find(function (column) { return column.propertyName === args.propertyName; });
             var column = new ColumnMetadata_1.ColumnMetadata({ connection: _this.connection, entityMetadata: entityMetadata, args: args });
             // if single table inheritance used, we need to mark all inherit table columns as nullable
             var columnInSingleTableInheritedChild = allEntityMetadatas.find(function (otherEntityMetadata) { return otherEntityMetadata.tableType === "entity-child" && otherEntityMetadata.target === args.target; });
