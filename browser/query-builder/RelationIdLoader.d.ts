@@ -69,4 +69,9 @@ export declare class RelationIdLoader {
      * Loads relation ids for the one-to-many and one-to-one not owner relations.
      */
     protected loadForOneToManyAndOneToOneNotOwner(relation: RelationMetadata, entities: ObjectLiteral[], relatedEntities?: ObjectLiteral[]): Promise<any[]>;
+    /**
+     * Builds column alias from given alias name and column name,
+     * If alias length is more than 29, abbreviates column name.
+     */
+    protected buildColumnAlias(aliasName: string, columnName: string): string;
 }

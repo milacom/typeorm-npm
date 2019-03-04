@@ -35,6 +35,9 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
     }
 };
 Object.defineProperty(exports, "__esModule", { value: true });
+var OracleDriver_1 = require("../driver/oracle/OracleDriver");
+var PostgresDriver_1 = require("../driver/postgres/PostgresDriver");
+var StringUtils_1 = require("../util/StringUtils");
 /**
  * Loads relation ids for the given entities.
  */
@@ -72,6 +75,7 @@ var RelationIdLoader = /** @class */ (function () {
      */
     RelationIdLoader.prototype.loadManyToManyRelationIdsAndGroup = function (relation, entitiesOrEntities, relatedEntityOrEntities, queryBuilder) {
         return __awaiter(this, void 0, void 0, function () {
+            var _this = this;
             var isMany, entities, relationIds, relatedEntities, columns, inverseColumns;
             return __generator(this, function (_a) {
                 switch (_a.label) {
@@ -112,7 +116,7 @@ var RelationIdLoader = /** @class */ (function () {
                                 var group = { entity: entity, related: isMany ? [] : undefined };
                                 var entityRelationIds = relationIds.filter(function (relationId) {
                                     return inverseColumns.every(function (column) {
-                                        return column.compareEntityValue(entity, relationId[column.entityMetadata.name + "_" + column.propertyAliasName]);
+                                        return column.compareEntityValue(entity, relationId[_this.buildColumnAlias(column.entityMetadata.name, column.propertyAliasName)]);
                                     });
                                 });
                                 if (!entityRelationIds.length)
@@ -120,7 +124,7 @@ var RelationIdLoader = /** @class */ (function () {
                                 relatedEntities.forEach(function (relatedEntity) {
                                     entityRelationIds.forEach(function (relationId) {
                                         var relatedEntityMatched = columns.every(function (column) {
-                                            return column.compareEntityValue(relatedEntity, relationId[column.entityMetadata.name + "_" + relation.propertyPath.replace(".", "_") + "_" + column.propertyPath.replace(".", "_")]);
+                                            return column.compareEntityValue(relatedEntity, relationId[_this.buildColumnAlias(column.entityMetadata.name, relation.propertyPath.replace(".", "_") + "_" + column.propertyPath.replace(".", "_"))]);
                                         });
                                         if (relatedEntityMatched) {
                                             if (isMany) {
@@ -183,6 +187,7 @@ var RelationIdLoader = /** @class */ (function () {
      * Loads relation ids for the many-to-many relation.
      */
     RelationIdLoader.prototype.loadForManyToMany = function (relation, entities, relatedEntities) {
+        var _this = this;
         var junctionMetadata = relation.junctionEntityMetadata;
         var mainAlias = junctionMetadata.name;
         var columns = relation.isOwning ? junctionMetadata.ownerColumns : junctionMetadata.inverseColumns;
@@ -190,11 +195,11 @@ var RelationIdLoader = /** @class */ (function () {
         var qb = this.connection.createQueryBuilder();
         // select all columns from junction table
         columns.forEach(function (column) {
-            var columnName = column.referencedColumn.entityMetadata.name + "_" + column.referencedColumn.propertyPath.replace(".", "_");
+            var columnName = _this.buildColumnAlias(column.referencedColumn.entityMetadata.name, column.referencedColumn.propertyPath.replace(".", "_"));
             qb.addSelect(mainAlias + "." + column.propertyPath, columnName);
         });
         inverseColumns.forEach(function (column) {
-            var columnName = column.referencedColumn.entityMetadata.name + "_" + relation.propertyPath.replace(".", "_") + "_" + column.referencedColumn.propertyPath.replace(".", "_");
+            var columnName = _this.buildColumnAlias(column.referencedColumn.entityMetadata.name, relation.propertyPath.replace(".", "_") + "_" + column.referencedColumn.propertyPath.replace(".", "_"));
             qb.addSelect(mainAlias + "." + column.propertyPath, columnName);
         });
         // add conditions for the given entities
@@ -270,6 +275,7 @@ var RelationIdLoader = /** @class */ (function () {
      * Loads relation ids for the many-to-one and one-to-one owner relations.
      */
     RelationIdLoader.prototype.loadForManyToOneAndOneToOneOwner = function (relation, entities, relatedEntities) {
+        var _this = this;
         var mainAlias = relation.entityMetadata.targetName;
         // console.log("entitiesx", entities);
         // console.log("relatedEntitiesx", relatedEntities);
@@ -281,7 +287,7 @@ var RelationIdLoader = /** @class */ (function () {
             entities.forEach(function (entity) {
                 var relationIdMap = {};
                 relation.entityMetadata.primaryColumns.forEach(function (primaryColumn) {
-                    var key = primaryColumn.entityMetadata.name + "_" + primaryColumn.propertyPath.replace(".", "_");
+                    var key = _this.buildColumnAlias(primaryColumn.entityMetadata.name, primaryColumn.propertyPath.replace(".", "_"));
                     relationIdMap[key] = primaryColumn.getEntityValue(entity);
                 });
                 relatedEntities.forEach(function (relatedEntity) {
@@ -291,7 +297,7 @@ var RelationIdLoader = /** @class */ (function () {
                         if (entityColumnValue === undefined || relatedEntityColumnValue === undefined)
                             return;
                         if (entityColumnValue === relatedEntityColumnValue) {
-                            var key = joinColumn.referencedColumn.entityMetadata.name + "_" + relation.propertyPath.replace(".", "_") + "_" + joinColumn.referencedColumn.propertyPath.replace(".", "_");
+                            var key = _this.buildColumnAlias(joinColumn.referencedColumn.entityMetadata.name, relation.propertyPath.replace(".", "_") + "_" + joinColumn.referencedColumn.propertyPath.replace(".", "_"));
                             relationIdMap[key] = relatedEntityColumnValue;
                         }
                     });
@@ -308,11 +314,11 @@ var RelationIdLoader = /** @class */ (function () {
         // select all columns we need
         var qb = this.connection.createQueryBuilder();
         relation.entityMetadata.primaryColumns.forEach(function (primaryColumn) {
-            var columnName = primaryColumn.entityMetadata.name + "_" + primaryColumn.propertyPath.replace(".", "_");
+            var columnName = _this.buildColumnAlias(primaryColumn.entityMetadata.name, primaryColumn.propertyPath.replace(".", "_"));
             qb.addSelect(mainAlias + "." + primaryColumn.propertyPath, columnName);
         });
         relation.joinColumns.forEach(function (column) {
-            var columnName = column.referencedColumn.entityMetadata.name + "_" + relation.propertyPath.replace(".", "_") + "_" + column.referencedColumn.propertyPath.replace(".", "_");
+            var columnName = _this.buildColumnAlias(column.referencedColumn.entityMetadata.name, relation.propertyPath.replace(".", "_") + "_" + column.referencedColumn.propertyPath.replace(".", "_"));
             qb.addSelect(mainAlias + "." + column.propertyPath, columnName);
         });
         // add condition for entities
@@ -346,18 +352,20 @@ var RelationIdLoader = /** @class */ (function () {
      * Loads relation ids for the one-to-many and one-to-one not owner relations.
      */
     RelationIdLoader.prototype.loadForOneToManyAndOneToOneNotOwner = function (relation, entities, relatedEntities) {
+        var _this = this;
         relation = relation.inverseRelation;
         if (relation.entityMetadata.primaryColumns.length === relation.joinColumns.length) {
             var sameReferencedColumns = relation.entityMetadata.primaryColumns.every(function (column) {
                 return relation.joinColumns.indexOf(column) !== -1;
             });
             if (sameReferencedColumns) {
+                var that_1 = this;
                 return Promise.resolve(entities.map(function (entity) {
                     var result = {};
                     relation.joinColumns.forEach(function (joinColumn) {
                         var value = joinColumn.referencedColumn.getEntityValue(entity);
-                        var joinColumnName = joinColumn.referencedColumn.entityMetadata.name + "_" + joinColumn.referencedColumn.propertyPath.replace(".", "_");
-                        var primaryColumnName = joinColumn.entityMetadata.name + "_" + relation.inverseRelation.propertyPath.replace(".", "_") + "_" + joinColumn.propertyPath.replace(".", "_");
+                        var joinColumnName = that_1.buildColumnAlias(joinColumn.referencedColumn.entityMetadata.name, joinColumn.referencedColumn.propertyPath.replace(".", "_"));
+                        var primaryColumnName = that_1.buildColumnAlias(joinColumn.entityMetadata.name, relation.inverseRelation.propertyPath.replace(".", "_") + "_" + joinColumn.propertyPath.replace(".", "_"));
                         result[joinColumnName] = value;
                         result[primaryColumnName] = value;
                     });
@@ -369,11 +377,11 @@ var RelationIdLoader = /** @class */ (function () {
         // select all columns we need
         var qb = this.connection.createQueryBuilder();
         relation.entityMetadata.primaryColumns.forEach(function (primaryColumn) {
-            var columnName = primaryColumn.entityMetadata.name + "_" + relation.inverseRelation.propertyPath.replace(".", "_") + "_" + primaryColumn.propertyPath.replace(".", "_");
+            var columnName = _this.buildColumnAlias(primaryColumn.entityMetadata.name, relation.inverseRelation.propertyPath.replace(".", "_") + "_" + primaryColumn.propertyPath.replace(".", "_"));
             qb.addSelect(mainAlias + "." + primaryColumn.propertyPath, columnName);
         });
         relation.joinColumns.forEach(function (column) {
-            var columnName = column.referencedColumn.entityMetadata.name + "_" + column.referencedColumn.propertyPath.replace(".", "_");
+            var columnName = _this.buildColumnAlias(column.referencedColumn.entityMetadata.name, column.referencedColumn.propertyPath.replace(".", "_"));
             qb.addSelect(mainAlias + "." + column.propertyPath, columnName);
         });
         // add condition for entities
@@ -402,6 +410,17 @@ var RelationIdLoader = /** @class */ (function () {
         return qb.from(relation.entityMetadata.target, mainAlias)
             .where(condition)
             .getRawMany();
+    };
+    /**
+     * Builds column alias from given alias name and column name,
+     * If alias length is more than 29, abbreviates column name.
+     */
+    RelationIdLoader.prototype.buildColumnAlias = function (aliasName, columnName) {
+        var columnAliasName = aliasName + "_" + columnName;
+        if ((columnAliasName.length > 29 && this.connection.driver instanceof OracleDriver_1.OracleDriver) ||
+            (columnAliasName.length > 63 && this.connection.driver instanceof PostgresDriver_1.PostgresDriver))
+            return aliasName + "_" + StringUtils_1.abbreviate(columnName, 2);
+        return columnAliasName;
     };
     return RelationIdLoader;
 }());
