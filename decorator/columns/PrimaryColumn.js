@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-var _1 = require("../../");
+var __1 = require("../../");
 var ColumnTypeUndefinedError_1 = require("../../error/ColumnTypeUndefinedError");
 var PrimaryColumnCannotBeNullableError_1 = require("../../error/PrimaryColumnCannotBeNullableError");
 /**
@@ -36,12 +36,19 @@ function PrimaryColumn(typeOrOptions, options) {
         // explicitly set a primary to column options
         options.primary = true;
         // create and register a new column metadata
-        _1.getMetadataArgsStorage().columns.push({
+        __1.getMetadataArgsStorage().columns.push({
             target: object.constructor,
             propertyName: propertyName,
             mode: "regular",
             options: options
         });
+        if (options.generated) {
+            __1.getMetadataArgsStorage().generations.push({
+                target: object.constructor,
+                propertyName: propertyName,
+                strategy: typeof options.generated === "string" ? options.generated : "increment"
+            });
+        }
     };
 }
 exports.PrimaryColumn = PrimaryColumn;

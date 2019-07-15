@@ -6,7 +6,7 @@ import { QueryRunner } from "../query-runner/QueryRunner";
  */
 export declare class MigrationExecutor {
     protected connection: Connection;
-    protected queryRunner: QueryRunner | undefined;
+    protected queryRunner?: QueryRunner | undefined;
     /**
      * Indicates if migrations must be executed in a transaction.
      */
@@ -15,10 +15,15 @@ export declare class MigrationExecutor {
     private readonly migrationsTableName;
     constructor(connection: Connection, queryRunner?: QueryRunner | undefined);
     /**
+     * Lists all migrations and whether they have been executed or not
+     * returns true if there are unapplied migrations
+     */
+    showMigrations(): Promise<boolean>;
+    /**
      * Executes all pending migrations. Pending migrations are migrations that are not yet executed,
      * thus not saved in the database.
      */
-    executePendingMigrations(): Promise<void>;
+    executePendingMigrations(): Promise<Migration[]>;
     /**
      * Reverts last migration that were run.
      */

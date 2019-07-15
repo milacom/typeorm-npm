@@ -1,4 +1,4 @@
-import { Connection, ObjectLiteral, SelectQueryBuilder } from "../";
+import { Connection, ObjectLiteral } from "../";
 import { RelationMetadata } from "../metadata/RelationMetadata";
 /**
  * Loads relation ids for the given entities.
@@ -9,13 +9,17 @@ export declare class RelationIdLoader {
     /**
      * Loads relation ids of the given entity or entities.
      */
-    load(relation: RelationMetadata, entityOrEntities: ObjectLiteral | ObjectLiteral[], relatedEntityOrRelatedEntities?: ObjectLiteral | ObjectLiteral[]): Promise<any[]>;
+    load(target: Function | string, relation: string, entities: ObjectLiteral | ObjectLiteral[], relatedEntities?: ObjectLiteral | ObjectLiteral[]): Promise<any[]>;
+    /**
+     * Loads relation ids of the given entity or entities.
+     */
+    load(relation: RelationMetadata, entities: ObjectLiteral | ObjectLiteral[], relatedEntities?: ObjectLiteral | ObjectLiteral[]): Promise<any[]>;
     /**
      * Loads relation ids of the given entities and groups them into the object with parent and children.
      *
      * todo: extract this method?
      */
-    loadManyToManyRelationIdsAndGroup<E1, E2>(relation: RelationMetadata, entitiesOrEntities: E1 | E1[], relatedEntityOrEntities?: E2 | E2[], queryBuilder?: SelectQueryBuilder<any>): Promise<{
+    loadManyToManyRelationIdsAndGroup<E1, E2>(relation: RelationMetadata, entitiesOrEntities: E1 | E1[], relatedEntityOrEntities?: E2 | E2[]): Promise<{
         entity: E1;
         related?: E2 | E2[];
     }[]>;
@@ -69,9 +73,4 @@ export declare class RelationIdLoader {
      * Loads relation ids for the one-to-many and one-to-one not owner relations.
      */
     protected loadForOneToManyAndOneToOneNotOwner(relation: RelationMetadata, entities: ObjectLiteral[], relatedEntities?: ObjectLiteral[]): Promise<any[]>;
-    /**
-     * Builds column alias from given alias name and column name,
-     * If alias length is more than 29, abbreviates column name.
-     */
-    protected buildColumnAlias(aliasName: string, columnName: string): string;
 }

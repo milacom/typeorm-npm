@@ -1,17 +1,18 @@
-/// <reference types="zen-observable" />
+import { Repository } from "./Repository";
+import { FindConditions } from "../index";
 import { DeepPartial } from "../common/DeepPartial";
-import { ObjectType } from "../common/ObjectType";
+import { SaveOptions } from "./SaveOptions";
+import { FindOneOptions } from "../find-options/FindOneOptions";
+import { RemoveOptions } from "./RemoveOptions";
+import { FindManyOptions } from "../find-options/FindManyOptions";
 import { Connection } from "../connection/Connection";
-import { ObjectID } from "../driver/mongodb/typings";
-import { FindExtraOptions, FindOptions, FindOptionsWhere } from "../index";
-import { DeleteResult } from "../query-builder/result/DeleteResult";
+import { ObjectType } from "../common/ObjectType";
+import { SelectQueryBuilder } from "../query-builder/SelectQueryBuilder";
 import { InsertResult } from "../query-builder/result/InsertResult";
 import { UpdateResult } from "../query-builder/result/UpdateResult";
-import { SelectQueryBuilder } from "../query-builder/SelectQueryBuilder";
-import { RemoveOptions } from "./RemoveOptions";
-import { Repository } from "./Repository";
-import { SaveOptions } from "./SaveOptions";
-import Observable = require("zen-observable");
+import { DeleteResult } from "../query-builder/result/DeleteResult";
+import { ObjectID } from "../driver/mongodb/typings";
+import { QueryDeepPartialEntity } from "../query-builder/QueryPartialEntity";
 /**
  * Base abstract entity for all entities, used in ActiveRecord patterns.
  */
@@ -29,11 +30,11 @@ export declare class BaseEntity {
      * Saves current entity in the database.
      * If entity does not exist in the database then inserts, otherwise updates.
      */
-    save(): Promise<this>;
+    save(options?: SaveOptions): Promise<this>;
     /**
      * Removes current entity from the database.
      */
-    remove(): Promise<this>;
+    remove(options?: RemoveOptions): Promise<this>;
     /**
      * Reloads entity data from the database.
      */
@@ -117,119 +118,83 @@ export declare class BaseEntity {
      * Executes fast and efficient INSERT query.
      * Does not check if entity exist in the database, so query will fail if duplicate entity is being inserted.
      */
-    static insert<T extends BaseEntity>(this: ObjectType<T>, entity: DeepPartial<T> | DeepPartial<T>[], options?: SaveOptions): Promise<InsertResult>;
+    static insert<T extends BaseEntity>(this: ObjectType<T>, entity: QueryDeepPartialEntity<T> | QueryDeepPartialEntity<T>[], options?: SaveOptions): Promise<InsertResult>;
     /**
      * Updates entity partially. Entity can be found by a given conditions.
      * Unlike save method executes a primitive operation without cascades, relations and other operations included.
      * Executes fast and efficient UPDATE query.
      * Does not check if entity exist in the database.
      */
-    static update<T extends BaseEntity>(this: ObjectType<T>, criteria: string | string[] | number | number[] | Date | Date[] | ObjectID | ObjectID[] | FindOptionsWhere<T>, partialEntity: DeepPartial<T>, options?: SaveOptions): Promise<UpdateResult>;
+    static update<T extends BaseEntity>(this: ObjectType<T>, criteria: string | string[] | number | number[] | Date | Date[] | ObjectID | ObjectID[] | FindConditions<T>, partialEntity: QueryDeepPartialEntity<T>, options?: SaveOptions): Promise<UpdateResult>;
     /**
      * Deletes entities by a given criteria.
      * Unlike save method executes a primitive operation without cascades, relations and other operations included.
      * Executes fast and efficient DELETE query.
      * Does not check if entity exist in the database.
      */
-    static delete<T extends BaseEntity>(this: ObjectType<T>, criteria: string | string[] | number | number[] | Date | Date[] | ObjectID | ObjectID[] | FindOptionsWhere<T>, options?: RemoveOptions): Promise<DeleteResult>;
+    static delete<T extends BaseEntity>(this: ObjectType<T>, criteria: string | string[] | number | number[] | Date | Date[] | ObjectID | ObjectID[] | FindConditions<T>, options?: RemoveOptions): Promise<DeleteResult>;
+    /**
+     * Counts entities that match given options.
+     */
+    static count<T extends BaseEntity>(this: ObjectType<T>, options?: FindManyOptions<T>): Promise<number>;
     /**
      * Counts entities that match given conditions.
      */
-    static count<T extends BaseEntity>(this: ObjectType<T>, conditions?: FindOptionsWhere<T>, options?: FindExtraOptions): Promise<number>;
+    static count<T extends BaseEntity>(this: ObjectType<T>, conditions?: FindConditions<T>): Promise<number>;
     /**
      * Finds entities that match given options.
      */
-    static find<T extends BaseEntity>(this: ObjectType<T>, options?: FindOptions<T>): Promise<T[]>;
+    static find<T extends BaseEntity>(this: ObjectType<T>, options?: FindManyOptions<T>): Promise<T[]>;
     /**
      * Finds entities that match given conditions.
      */
-    static find<T extends BaseEntity>(this: ObjectType<T>, conditions?: FindOptionsWhere<T>): Promise<T[]>;
+    static find<T extends BaseEntity>(this: ObjectType<T>, conditions?: FindConditions<T>): Promise<T[]>;
     /**
      * Finds entities that match given find options.
      * Also counts all entities that match given conditions,
      * but ignores pagination settings (from and take options).
      */
-    static findAndCount<T extends BaseEntity>(this: ObjectType<T>, options?: FindOptions<T>): Promise<[T[], number]>;
+    static findAndCount<T extends BaseEntity>(this: ObjectType<T>, options?: FindManyOptions<T>): Promise<[T[], number]>;
     /**
      * Finds entities that match given conditions.
      * Also counts all entities that match given conditions,
      * but ignores pagination settings (from and take options).
      */
-    static findAndCount<T extends BaseEntity>(this: ObjectType<T>, conditions?: FindOptionsWhere<T>): Promise<[T[], number]>;
+    static findAndCount<T extends BaseEntity>(this: ObjectType<T>, conditions?: FindConditions<T>): Promise<[T[], number]>;
     /**
      * Finds entities by ids.
      * Optionally find options can be applied.
      */
-    static findByIds<T extends BaseEntity>(this: ObjectType<T>, ids: any[], options?: FindOptions<T>): Promise<T[]>;
+    static findByIds<T extends BaseEntity>(this: ObjectType<T>, ids: any[], options?: FindManyOptions<T>): Promise<T[]>;
     /**
      * Finds entities by ids.
      * Optionally conditions can be applied.
      */
-    static findByIds<T extends BaseEntity>(this: ObjectType<T>, ids: any[], conditions?: FindOptionsWhere<T>): Promise<T[]>;
+    static findByIds<T extends BaseEntity>(this: ObjectType<T>, ids: any[], conditions?: FindConditions<T>): Promise<T[]>;
     /**
      * Finds first entity that matches given options.
      */
-    static findOne<T extends BaseEntity>(this: ObjectType<T>, id?: string | number | Date | ObjectID, options?: FindOptions<T>): Promise<T | undefined>;
+    static findOne<T extends BaseEntity>(this: ObjectType<T>, id?: string | number | Date | ObjectID, options?: FindOneOptions<T>): Promise<T | undefined>;
     /**
      * Finds first entity that matches given options.
      */
-    static findOne<T extends BaseEntity>(this: ObjectType<T>, options?: FindOptions<T>): Promise<T | undefined>;
+    static findOne<T extends BaseEntity>(this: ObjectType<T>, options?: FindOneOptions<T>): Promise<T | undefined>;
     /**
      * Finds first entity that matches given conditions.
      */
-    static findOne<T extends BaseEntity>(this: ObjectType<T>, conditions?: FindOptionsWhere<T>, options?: FindOptions<T>): Promise<T | undefined>;
+    static findOne<T extends BaseEntity>(this: ObjectType<T>, conditions?: FindConditions<T>, options?: FindOneOptions<T>): Promise<T | undefined>;
     /**
      * Finds first entity that matches given options.
      */
-    static findOneOrFail<T extends BaseEntity>(this: ObjectType<T>, id?: string | number | Date | ObjectID, options?: FindOptions<T>): Promise<T>;
+    static findOneOrFail<T extends BaseEntity>(this: ObjectType<T>, id?: string | number | Date | ObjectID, options?: FindOneOptions<T>): Promise<T>;
     /**
      * Finds first entity that matches given options.
      */
-    static findOneOrFail<T extends BaseEntity>(this: ObjectType<T>, options?: FindOptions<T>): Promise<T>;
+    static findOneOrFail<T extends BaseEntity>(this: ObjectType<T>, options?: FindOneOptions<T>): Promise<T>;
     /**
      * Finds first entity that matches given conditions.
      */
-    static findOneOrFail<T extends BaseEntity>(this: ObjectType<T>, conditions?: DeepPartial<T>, options?: FindOptions<T>): Promise<T>;
-    /**
-     * Finds entities that match given options and returns observable.
-     * Whenever new data appears that matches given query observable emits new value.
-     */
-    static observe<Entity>(options?: FindOptions<Entity>): Observable<Entity[]>;
-    /**
-     * Finds entities that match given conditions and returns observable.
-     * Whenever new data appears that matches given query observable emits new value.
-     */
-    static observe<Entity>(conditions?: FindOptionsWhere<Entity>): Observable<Entity[]>;
-    /**
-     * Finds entities and count that match given options and returns observable.
-     * Whenever new data appears that matches given query observable emits new value.
-     */
-    static observeManyAndCount<Entity>(options?: FindOptions<Entity>): Observable<[Entity[], number]>;
-    /**
-     * Finds entities and count that match given conditions and returns observable.
-     * Whenever new data appears that matches given query observable emits new value.
-     */
-    static observeManyAndCount<Entity>(conditions?: FindOptionsWhere<Entity>): Observable<[Entity[], number]>;
-    /**
-     * Finds entity that match given options and returns observable.
-     * Whenever new data appears that matches given query observable emits new value.
-     */
-    static observeOne<Entity>(options?: FindOptions<Entity>): Observable<Entity>;
-    /**
-     * Finds entity that match given conditions and returns observable.
-     * Whenever new data appears that matches given query observable emits new value.
-     */
-    static observeOne<Entity>(conditions?: FindOptionsWhere<Entity>): Observable<Entity>;
-    /**
-     * Gets the entities count match given options and returns observable.
-     * Whenever new data appears that matches given query observable emits new value.
-     */
-    static observeCount<Entity>(options?: FindOptions<Entity>): Observable<number>;
-    /**
-     * Gets the entities count match given options and returns observable.
-     * Whenever new data appears that matches given query observable emits new value.
-     */
-    static observeCount<Entity>(conditions?: FindOptionsWhere<Entity>): Observable<number>;
+    static findOneOrFail<T extends BaseEntity>(this: ObjectType<T>, conditions?: FindConditions<T>, options?: FindOneOptions<T>): Promise<T>;
     /**
      * Executes a raw SQL query and returns a raw database results.
      * Raw query execution is supported only by relational databases (MongoDB is not supported).

@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-var _1 = require("../../");
+var __1 = require("../../");
 /**
  * This column will store a creation date of the inserted object.
  * Creation date is generated and inserted only once,
@@ -8,7 +8,7 @@ var _1 = require("../../");
  */
 function CreateDateColumn(options) {
     return function (object, propertyName) {
-        _1.getMetadataArgsStorage().columns.push({
+        __1.getMetadataArgsStorage().columns.push({
             target: object.constructor,
             propertyName: propertyName,
             mode: "createDate",

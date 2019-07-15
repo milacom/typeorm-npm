@@ -5,7 +5,7 @@ import { TableForeignKeyOptions } from "../options/TableForeignKeyOptions";
  */
 export declare class TableForeignKey {
     /**
-     * Name of the table which contains this foreign key.
+     * Name of the foreign key constraint.
      */
     name?: string;
     /**
@@ -30,6 +30,11 @@ export declare class TableForeignKey {
      * referenced stuff is being updated.
      */
     onUpdate?: string;
+    /**
+     * Set this foreign key constraint as "DEFERRABLE" e.g. check constraints at start
+     * or at the end of a transaction
+     */
+    deferrable?: string;
     constructor(options: TableForeignKeyOptions);
     /**
      * Creates a new copy of this foreign key with exactly same properties.

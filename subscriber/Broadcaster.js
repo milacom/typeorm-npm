@@ -40,8 +40,8 @@ var Broadcaster = /** @class */ (function () {
                         connection: _this.queryRunner.connection,
                         queryRunner: _this.queryRunner,
                         manager: _this.queryRunner.manager,
-                        metadata: metadata,
-                        entity: entity
+                        entity: entity,
+                        metadata: metadata
                     });
                     if (executionResult instanceof Promise)
                         result.promises.push(executionResult);
@@ -58,7 +58,7 @@ var Broadcaster = /** @class */ (function () {
      *
      * Note: this method has a performance-optimized code organization, do not change code structure.
      */
-    Broadcaster.prototype.broadcastBeforeUpdateEvent = function (result, metadata, entity, databaseEntity) {
+    Broadcaster.prototype.broadcastBeforeUpdateEvent = function (result, metadata, entity, databaseEntity, updatedColumns, updatedRelations) {
         var _this = this;
         if (entity && metadata.beforeUpdateListeners.length) {
             metadata.beforeUpdateListeners.forEach(function (listener) {
@@ -77,11 +77,11 @@ var Broadcaster = /** @class */ (function () {
                         connection: _this.queryRunner.connection,
                         queryRunner: _this.queryRunner,
                         manager: _this.queryRunner.manager,
-                        metadata: metadata,
                         entity: entity,
+                        metadata: metadata,
                         databaseEntity: databaseEntity,
-                        updatedColumns: [],
-                        updatedRelations: [] // subject.diffRelations,
+                        updatedColumns: updatedColumns || [],
+                        updatedRelations: updatedRelations || []
                     });
                     if (executionResult instanceof Promise)
                         result.promises.push(executionResult);
@@ -117,8 +117,8 @@ var Broadcaster = /** @class */ (function () {
                         connection: _this.queryRunner.connection,
                         queryRunner: _this.queryRunner,
                         manager: _this.queryRunner.manager,
-                        metadata: metadata,
                         entity: entity,
+                        metadata: metadata,
                         databaseEntity: databaseEntity,
                         entityId: metadata.getEntityIdMixedMap(databaseEntity)
                     });
@@ -156,8 +156,8 @@ var Broadcaster = /** @class */ (function () {
                         connection: _this.queryRunner.connection,
                         queryRunner: _this.queryRunner,
                         manager: _this.queryRunner.manager,
-                        metadata: metadata,
-                        entity: entity
+                        entity: entity,
+                        metadata: metadata
                     });
                     if (executionResult instanceof Promise)
                         result.promises.push(executionResult);
@@ -174,7 +174,7 @@ var Broadcaster = /** @class */ (function () {
      *
      * Note: this method has a performance-optimized code organization, do not change code structure.
      */
-    Broadcaster.prototype.broadcastAfterUpdateEvent = function (result, metadata, entity, databaseEntity) {
+    Broadcaster.prototype.broadcastAfterUpdateEvent = function (result, metadata, entity, databaseEntity, updatedColumns, updatedRelations) {
         var _this = this;
         if (entity && metadata.afterUpdateListeners.length) {
             metadata.afterUpdateListeners.forEach(function (listener) {
@@ -193,11 +193,11 @@ var Broadcaster = /** @class */ (function () {
                         connection: _this.queryRunner.connection,
                         queryRunner: _this.queryRunner,
                         manager: _this.queryRunner.manager,
-                        metadata: metadata,
                         entity: entity,
+                        metadata: metadata,
                         databaseEntity: databaseEntity,
-                        updatedColumns: [],
-                        updatedRelations: [] // todo: subject.diffRelations,
+                        updatedColumns: updatedColumns || [],
+                        updatedRelations: updatedRelations || []
                     });
                     if (executionResult instanceof Promise)
                         result.promises.push(executionResult);
@@ -233,8 +233,8 @@ var Broadcaster = /** @class */ (function () {
                         connection: _this.queryRunner.connection,
                         queryRunner: _this.queryRunner,
                         manager: _this.queryRunner.manager,
-                        metadata: metadata,
                         entity: entity,
+                        metadata: metadata,
                         databaseEntity: databaseEntity,
                         entityId: metadata.getEntityIdMixedMap(databaseEntity)
                     });
@@ -282,7 +282,13 @@ var Broadcaster = /** @class */ (function () {
             if (_this.queryRunner.connection.subscribers.length) {
                 _this.queryRunner.connection.subscribers.forEach(function (subscriber) {
                     if (_this.isAllowedSubscriber(subscriber, metadata.target) && subscriber.afterLoad) {
-                        var executionResult = subscriber.afterLoad(entity);
+                        var executionResult = subscriber.afterLoad(entity, {
+                            connection: _this.queryRunner.connection,
+                            queryRunner: _this.queryRunner,
+                            manager: _this.queryRunner.manager,
+                            entity: entity,
+                            metadata: metadata
+                        });
                         if (executionResult instanceof Promise)
                             result.promises.push(executionResult);
                         result.count++;

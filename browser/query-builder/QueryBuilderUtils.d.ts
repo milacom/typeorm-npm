@@ -7,5 +7,4 @@ export declare class QueryBuilderUtils {
      * e.g. "post.category" or "post.id".
      */
     static isAliasProperty(str: any): str is string;
-    static extractAliasAndPropertyPath(str: string): [string, string];
 }

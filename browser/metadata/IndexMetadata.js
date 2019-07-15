@@ -46,6 +46,8 @@ var IndexMetadata = /** @class */ (function () {
             this.isFulltext = !!options.args.fulltext;
             this.where = options.args.where;
             this.isSparse = options.args.sparse;
+            this.isBackground = options.args.background;
+            this.expireAfterSeconds = options.args.expireAfterSeconds;
             this.givenName = options.args.name;
             this.givenColumnNames = options.args.columns;
         }
@@ -96,14 +98,16 @@ var IndexMetadata = /** @class */ (function () {
                 if (relationWithSameName) {
                     return relationWithSameName.joinColumns;
                 }
-                throw new Error("Index " + (_this.givenName ? "\"" + _this.givenName + "\" " : "") + "contains column that is missing in the entity: " + propertyPath);
+                var indexName = _this.givenName ? "\"" + _this.givenName + "\" " : "";
+                var entityName = _this.entityMetadata.targetName;
+                throw new Error("Index " + indexName + "contains column that is missing in the entity (" + entityName + "): " + propertyPath);
             })
                 .reduce(function (a, b) { return a.concat(b); });
         }
         this.columnNamesWithOrderingMap = Object.keys(map).reduce(function (updatedMap, key) {
             var column = _this.entityMetadata.columns.find(function (column) { return column.propertyPath === key; });
             if (column)
-                updatedMap[column.databaseName] = map[key];
+                updatedMap[column.databasePath] = map[key];
             return updatedMap;
         }, {});
         this.name = this.givenName ? this.givenName : namingStrategy.indexName(this.entityMetadata.tablePath, this.columns.map(function (column) { return column.databaseName; }), this.where);

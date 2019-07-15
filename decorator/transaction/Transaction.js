@@ -1,26 +1,7 @@
 "use strict";
-var __read = (this && this.__read) || function (o, n) {
-    var m = typeof Symbol === "function" && o[Symbol.iterator];
-    if (!m) return o;
-    var i = m.call(o), r, ar = [], e;
-    try {
-        while ((n === void 0 || n-- > 0) && !(r = i.next()).done) ar.push(r.value);
-    }
-    catch (error) { e = { error: error }; }
-    finally {
-        try {
-            if (r && !r.done && (m = i["return"])) m.call(i);
-        }
-        finally { if (e) throw e.error; }
-    }
-    return ar;
-};
-var __spread = (this && this.__spread) || function () {
-    for (var ar = [], i = 0; i < arguments.length; i++) ar = ar.concat(__read(arguments[i]));
-    return ar;
-};
 Object.defineProperty(exports, "__esModule", { value: true });
-var _1 = require("../../");
+var tslib_1 = require("tslib");
+var __1 = require("../../");
 function Transaction(connectionOrOptions) {
     return function (target, methodName, descriptor) {
         // save original method - we gonna need it
@@ -39,49 +20,49 @@ function Transaction(connectionOrOptions) {
                     connectionName = connectionOrOptions;
                 }
                 else {
-                    if (connectionOrOptions.hasOwnProperty("connectionName") && connectionOrOptions.connectionName) {
+                    if (connectionOrOptions.connectionName) {
                         connectionName = connectionOrOptions.connectionName;
                     }
-                    if (connectionOrOptions.hasOwnProperty("isolation") && connectionOrOptions.isolationLevel) {
-                        isolationLevel = connectionOrOptions.isolationLevel;
+                    if (connectionOrOptions.isolation) {
+                        isolationLevel = connectionOrOptions.isolation;
                     }
                 }
             }
             var transactionCallback = function (entityManager) {
                 var argsWithInjectedTransactionManagerAndRepositories;
                 // filter all @TransactionEntityManager() and @TransactionRepository() decorator usages for this method
-                var transactionEntityManagerMetadatas = _1.getMetadataArgsStorage()
+                var transactionEntityManagerMetadatas = __1.getMetadataArgsStorage()
                     .filterTransactionEntityManagers(target.constructor, methodName)
                     .reverse();
-                var transactionRepositoryMetadatas = _1.getMetadataArgsStorage()
+                var transactionRepositoryMetadatas = __1.getMetadataArgsStorage()
                     .filterTransactionRepository(target.constructor, methodName)
                     .reverse();
                 // if there are @TransactionEntityManager() decorator usages the inject them
                 if (transactionEntityManagerMetadatas.length > 0) {
-                    argsWithInjectedTransactionManagerAndRepositories = __spread(args);
+                    argsWithInjectedTransactionManagerAndRepositories = tslib_1.__spread(args);
                     // replace method params with injection of transactionEntityManager
                     transactionEntityManagerMetadatas.forEach(function (metadata) {
                         argsWithInjectedTransactionManagerAndRepositories.splice(metadata.index, 0, entityManager);
                     });
                 }
                 else if (transactionRepositoryMetadatas.length === 0) { // otherwise if there's no transaction repositories in use, inject it as a first parameter
-                    argsWithInjectedTransactionManagerAndRepositories = __spread([entityManager], args);
+                    argsWithInjectedTransactionManagerAndRepositories = tslib_1.__spread([entityManager], args);
                 }
                 else {
-                    argsWithInjectedTransactionManagerAndRepositories = __spread(args);
+                    argsWithInjectedTransactionManagerAndRepositories = tslib_1.__spread(args);
                 }
                 // for every usage of @TransactionRepository decorator
                 transactionRepositoryMetadatas.forEach(function (metadata) {
                     var repositoryInstance;
                     // detect type of the repository and get instance from transaction entity manager
                     switch (metadata.repositoryType) {
-                        case _1.Repository:
+                        case __1.Repository:
                             repositoryInstance = entityManager.getRepository(metadata.entityType);
                             break;
-                        case _1.MongoRepository:
+                        case __1.MongoRepository:
                             repositoryInstance = entityManager.getMongoRepository(metadata.entityType);
                             break;
-                        case _1.TreeRepository:
+                        case __1.TreeRepository:
                             repositoryInstance = entityManager.getTreeRepository(metadata.entityType);
                             break;
                         // if not the TypeORM's ones, there must be custom repository classes
@@ -94,10 +75,10 @@ function Transaction(connectionOrOptions) {
                 return originalMethod.apply(_this, argsWithInjectedTransactionManagerAndRepositories);
             };
             if (isolationLevel) {
-                return _1.getConnection(connectionName).manager.transaction(isolationLevel, transactionCallback);
+                return __1.getConnection(connectionName).manager.transaction(isolationLevel, transactionCallback);
             }
             else {
-                return _1.getConnection(connectionName).manager.transaction(transactionCallback);
+                return __1.getConnection(connectionName).manager.transaction(transactionCallback);
             }
         };
     };

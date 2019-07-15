@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-var _1 = require("../../");
+var __1 = require("../../");
 /**
  * This column will store a number - version of the entity.
  * Every time your entity will be persisted, this number will be increased by one -
@@ -8,7 +8,7 @@ var _1 = require("../../");
  */
 function VersionColumn(options) {
     return function (object, propertyName) {
-        _1.getMetadataArgsStorage().columns.push({
+        __1.getMetadataArgsStorage().columns.push({
             target: object.constructor,
             propertyName: propertyName,
             mode: "version",

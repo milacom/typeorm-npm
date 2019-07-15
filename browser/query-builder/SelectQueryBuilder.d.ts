@@ -10,28 +10,10 @@ import { QueryRunner } from "../query-runner/QueryRunner";
 import { WhereExpression } from "./WhereExpression";
 import { Brackets } from "./Brackets";
 import { SelectQueryBuilderOption } from "./SelectQueryBuilderOption";
-import { FindOptions, FindOptionsOrder, FindOptionsRelation, FindOptionsSelect, FindOptionsWhere } from "../find-options/FindOptions";
-import { RelationMetadata } from "../metadata/RelationMetadata";
 /**
  * Allows to build complex sql queries in a fashion way and execute those queries.
  */
 export declare class SelectQueryBuilder<Entity> extends QueryBuilder<Entity> implements WhereExpression {
-    protected findOptions: FindOptions<Entity>;
-    protected selects: string[];
-    protected joins: {
-        type: "inner" | "left";
-        alias: string;
-        parentAlias: string;
-        relationMetadata: RelationMetadata;
-        select: boolean;
-    }[];
-    protected conditions: string;
-    protected orderBys: {
-        alias: string;
-        direction: "ASC" | "DESC";
-        nulls?: "NULLS FIRST" | "NULLS LAST";
-    }[];
-    protected relationMetadatas: RelationMetadata[];
     /**
      * Gets generated sql query without parameters being replaced.
      */
@@ -40,7 +22,6 @@ export declare class SelectQueryBuilder<Entity> extends QueryBuilder<Entity> imp
      * Creates a subquery - query that can be used inside other queries.
      */
     subQuery(): SelectQueryBuilder<any>;
-    setFindOptions(findOptions: FindOptions<Entity>): this;
     /**
      * Creates SELECT query.
      * Replaces all previous selections if they exist.
@@ -62,11 +43,6 @@ export declare class SelectQueryBuilder<Entity> extends QueryBuilder<Entity> imp
      */
     select(selection: string[]): this;
     /**
-     * Creates SELECT query based on find options.
-     * Replaces all previous selections if they exist.
-     */
-    select(options: FindOptionsSelect<Entity>): this;
-    /**
      * Adds new selection to the SELECT query.
      */
     addSelect(selection: (qb: SelectQueryBuilder<any>) => SelectQueryBuilder<any>, selectionAliasName?: string): this;
@@ -79,9 +55,9 @@ export declare class SelectQueryBuilder<Entity> extends QueryBuilder<Entity> imp
      */
     addSelect(selection: string[]): this;
     /**
-     * Adds new selection to the SELECT query based on find options.
+     * Sets whether the selection is DISTINCT.
      */
-    addSelect(options: FindOptionsSelect<Entity>): this;
+    distinct(distinct?: boolean): this;
     /**
      * Specifies FROM which entity's table select/update/delete will be executed.
      * Also sets a main string alias of the selection data.
@@ -380,17 +356,17 @@ export declare class SelectQueryBuilder<Entity> extends QueryBuilder<Entity> imp
      * calling this function will override previously set WHERE conditions.
      * Additionally you can add parameters used in where expression.
      */
-    where(where: Brackets | string | ((qb: this) => string) | FindOptionsWhere<Entity>, parameters?: ObjectLiteral): this;
+    where(where: Brackets | string | ((qb: this) => string) | ObjectLiteral | ObjectLiteral[], parameters?: ObjectLiteral): this;
     /**
      * Adds new AND WHERE condition in the query builder.
      * Additionally you can add parameters used in where expression.
      */
-    andWhere(where: string | Brackets | ((qb: this) => string) | FindOptionsWhere<Entity>, parameters?: ObjectLiteral): this;
+    andWhere(where: string | Brackets | ((qb: this) => string), parameters?: ObjectLiteral): this;
     /**
      * Adds new OR WHERE condition in the query builder.
      * Additionally you can add parameters used in where expression.
      */
-    orWhere(where: Brackets | string | ((qb: this) => string) | FindOptionsWhere<Entity>, parameters?: ObjectLiteral): this;
+    orWhere(where: Brackets | string | ((qb: this) => string), parameters?: ObjectLiteral): this;
     /**
      * Adds new AND WHERE with conditions for the given ids.
      *
@@ -508,7 +484,7 @@ export declare class SelectQueryBuilder<Entity> extends QueryBuilder<Entity> imp
     /**
      * Sets locking mode.
      */
-    setLock(lockMode: "pessimistic_read" | "pessimistic_write"): this;
+    setLock(lockMode: "pessimistic_read" | "pessimistic_write" | "dirty_read"): this;
     /**
      * Gets first raw result returned by execution of generated query builder sql.
      */
@@ -563,10 +539,6 @@ export declare class SelectQueryBuilder<Entity> extends QueryBuilder<Entity> imp
      * Sets extra options that can be used to configure how query builder works.
      */
     setOption(option: SelectQueryBuilderOption): this;
-    /**
-     * Disables eager relations.
-     */
-    disableEagerRelations(disabled?: boolean): this;
     protected join(direction: "INNER" | "LEFT", entityOrProperty: Function | string | ((qb: SelectQueryBuilder<any>) => SelectQueryBuilder<any>), aliasName: string, condition?: string, parameters?: ObjectLiteral, mapToProperty?: string, isMappingMany?: boolean): void;
     /**
      * Creates "SELECT FROM" part of SQL query.
@@ -598,7 +570,6 @@ export declare class SelectQueryBuilder<Entity> extends QueryBuilder<Entity> imp
     protected createHavingExpression(): string;
     protected buildEscapedEntityColumnSelects(aliasName: string, metadata: EntityMetadata): SelectQuery[];
     protected findEntityColumnSelects(aliasName: string, metadata: EntityMetadata): SelectQuery[];
-    protected applyFindOptions(): void;
     protected executeCountQuery(queryRunner: QueryRunner): Promise<number>;
     /**
      * Executes sql generated by query builder and returns object with raw results and entities created from them.
@@ -613,11 +584,6 @@ export declare class SelectQueryBuilder<Entity> extends QueryBuilder<Entity> imp
      */
     protected loadRawResults(queryRunner: QueryRunner): Promise<any>;
     /**
-     * Builds column alias from given alias name and column name,
-     * If alias length is more than 29, abbreviates column name.
-     */
-    protected buildColumnAlias(aliasName: string, columnName: string): string;
-    /**
      * Merges into expression map given expression map properties.
      */
     protected mergeExpressionMap(expressionMap: Partial<QueryExpressionMap>): this;
@@ -629,8 +595,4 @@ export declare class SelectQueryBuilder<Entity> extends QueryBuilder<Entity> imp
      * Creates a query builder used to execute sql queries inside this query builder.
      */
     protected obtainQueryRunner(): QueryRunner;
-    protected buildSelect(select: FindOptionsSelect<any>, metadata: EntityMetadata, alias: string, embedPrefix?: string): void;
-    protected buildRelations(relations: FindOptionsRelation<any> | any, metadata: EntityMetadata, embedPrefix?: string): void;
-    protected buildOrder(order: FindOptionsOrder<any>, metadata: EntityMetadata, alias: string, embedPrefix?: string): void;
-    protected buildWhere(where: any, metadata: EntityMetadata, alias: string, embedPrefix?: string): string;
 }

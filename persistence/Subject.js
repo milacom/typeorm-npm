@@ -1,25 +1,6 @@
 "use strict";
-var __read = (this && this.__read) || function (o, n) {
-    var m = typeof Symbol === "function" && o[Symbol.iterator];
-    if (!m) return o;
-    var i = m.call(o), r, ar = [], e;
-    try {
-        while ((n === void 0 || n-- > 0) && !(r = i.next()).done) ar.push(r.value);
-    }
-    catch (error) { e = { error: error }; }
-    finally {
-        try {
-            if (r && !r.done && (m = i["return"])) m.call(i);
-        }
-        finally { if (e) throw e.error; }
-    }
-    return ar;
-};
-var __spread = (this && this.__spread) || function () {
-    for (var ar = [], i = 0; i < arguments.length; i++) ar = ar.concat(__read(arguments[i]));
-    return ar;
-};
 Object.defineProperty(exports, "__esModule", { value: true });
+var tslib_1 = require("tslib");
 var OrmUtils_1 = require("../util/OrmUtils");
 /**
  * Subject is a subject of persistence.
@@ -36,6 +17,7 @@ var Subject = /** @class */ (function () {
     // Constructor
     // -------------------------------------------------------------------------
     function Subject(options) {
+        var _a;
         /**
          * Subject identifier.
          * This identifier is not limited to table entity primary columns.
@@ -47,6 +29,11 @@ var Subject = /** @class */ (function () {
          * Copy of entity but with relational ids fulfilled.
          */
         this.entityWithFulfilledIds = undefined;
+        /**
+         * Indicates if database entity was loaded.
+         * No matter if it was found or not, it indicates the fact of loading.
+         */
+        this.databaseEntityLoaded = false;
         /**
          * Changes needs to be applied in the database for the given subject.
          */
@@ -70,9 +57,16 @@ var Subject = /** @class */ (function () {
          * Relations updated by the change maps.
          */
         this.updatedRelationMaps = [];
+        /**
+         * List of updated columns
+         */
+        this.diffColumns = [];
+        /**
+         * List of updated relations
+         */
+        this.diffRelations = [];
         this.metadata = options.metadata;
         this.entity = options.entity;
-        this.databaseEntity = options.databaseEntity;
         this.parentSubject = options.parentSubject;
         if (options.canBeInserted !== undefined)
             this.canBeInserted = options.canBeInserted;
@@ -83,24 +77,8 @@ var Subject = /** @class */ (function () {
         if (options.identifier !== undefined)
             this.identifier = options.identifier;
         if (options.changeMaps !== undefined)
-            (_a = this.changeMaps).push.apply(_a, __spread(options.changeMaps));
-        if (this.entity) {
-            this.entityWithFulfilledIds = Object.assign({}, this.entity);
-            // if (this.parentSubject) {
-            //     this.metadata.primaryColumns.forEach(primaryColumn => {
-            // if (primaryColumn.relationMetadata && primaryColumn.relationMetadata.inverseEntityMetadata === this.parentSubject!.metadata) {
-            //     primaryColumn.setEntityValue(this.entityWithFulfilledIds!, this.parentSubject!.entity);
-            // }
-            // });
-            // }
-            // console.log("this.entityWithFulfilledIds", this.entityWithFulfilledIds);
-            this.identifier = this.metadata.getEntityIdMap(this.entityWithFulfilledIds);
-            // console.log("this.identifier", this.identifier);
-        }
-        else if (this.databaseEntity) {
-            this.identifier = this.metadata.getEntityIdMap(this.databaseEntity);
-        }
-        var _a;
+            (_a = this.changeMaps).push.apply(_a, tslib_1.__spread(options.changeMaps));
+        this.recompute();
     }
     Object.defineProperty(Subject.prototype, "mustBeInserted", {
         // -------------------------------------------------------------------------
@@ -124,7 +102,11 @@ var Subject = /** @class */ (function () {
          * and if it does have differentiated columns or relations.
          */
         get: function () {
-            return this.canBeUpdated && this.identifier && (this.changeMaps.length > 0 || !!this.metadata.objectIdColumn); // for mongodb we do not compute changes - we always update entity
+            return this.canBeUpdated &&
+                this.identifier &&
+                (this.databaseEntityLoaded === false || (this.databaseEntityLoaded && this.databaseEntity)) &&
+                // ((this.entity && this.databaseEntity) || (!this.entity && !this.databaseEntity)) &&
+                this.changeMaps.length > 0;
         },
         enumerable: true,
         configurable: true
@@ -188,6 +170,26 @@ var Subject = /** @class */ (function () {
         }, {});
         this.changeMaps = changeMapsWithoutValues;
         return changeSet;
+    };
+    /**
+     * Recomputes entityWithFulfilledIds and identifier when entity changes.
+     */
+    Subject.prototype.recompute = function () {
+        var _this = this;
+        if (this.entity) {
+            this.entityWithFulfilledIds = Object.assign({}, this.entity);
+            if (this.parentSubject) {
+                this.metadata.primaryColumns.forEach(function (primaryColumn) {
+                    if (primaryColumn.relationMetadata && primaryColumn.relationMetadata.inverseEntityMetadata === _this.parentSubject.metadata) {
+                        primaryColumn.setEntityValue(_this.entityWithFulfilledIds, _this.parentSubject.entity);
+                    }
+                });
+            }
+            this.identifier = this.metadata.getEntityIdMap(this.entityWithFulfilledIds);
+        }
+        else if (this.databaseEntity) {
+            this.identifier = this.metadata.getEntityIdMap(this.databaseEntity);
+        }
     };
     return Subject;
 }());

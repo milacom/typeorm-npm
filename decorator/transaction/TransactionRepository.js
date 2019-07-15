@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-var _1 = require("../../");
+var __1 = require("../../");
 var CannotReflectMethodParameterTypeError_1 = require("../../error/CannotReflectMethodParameterTypeError");
 /**
  * Injects transaction's repository into the method wrapped with @Transaction decorator.
@@ -15,7 +15,7 @@ function TransactionRepository(entityType) {
         catch (err) {
             throw new CannotReflectMethodParameterTypeError_1.CannotReflectMethodParameterTypeError(object.constructor, methodName);
         }
-        _1.getMetadataArgsStorage().transactionRepositories.push({
+        __1.getMetadataArgsStorage().transactionRepositories.push({
             target: object.constructor,
             methodName: methodName,
             index: index,

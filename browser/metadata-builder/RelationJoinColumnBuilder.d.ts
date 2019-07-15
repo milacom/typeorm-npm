@@ -51,5 +51,5 @@ export declare class RelationJoinColumnBuilder {
     /**
      * Collects columns from the given join column args.
      */
-    private collectColumns(joinColumns, relation, referencedColumns);
+    private collectColumns;
 }

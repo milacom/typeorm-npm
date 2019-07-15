@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-var _1 = require("../../");
+var __1 = require("../../");
 /**
  * Holds a number of children in the closure table of the column.
  *
@@ -8,7 +8,7 @@ var _1 = require("../../");
  */
 function RelationCount(relation, alias, queryBuilderFactory) {
     return function (object, propertyName) {
-        _1.getMetadataArgsStorage().relationCounts.push({
+        __1.getMetadataArgsStorage().relationCounts.push({
             target: object.constructor,
             propertyName: propertyName,
             relation: relation,

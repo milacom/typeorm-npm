@@ -1,25 +1,6 @@
 "use strict";
-var __read = (this && this.__read) || function (o, n) {
-    var m = typeof Symbol === "function" && o[Symbol.iterator];
-    if (!m) return o;
-    var i = m.call(o), r, ar = [], e;
-    try {
-        while ((n === void 0 || n-- > 0) && !(r = i.next()).done) ar.push(r.value);
-    }
-    catch (error) { e = { error: error }; }
-    finally {
-        try {
-            if (r && !r.done && (m = i["return"])) m.call(i);
-        }
-        finally { if (e) throw e.error; }
-    }
-    return ar;
-};
-var __spread = (this && this.__spread) || function () {
-    for (var ar = [], i = 0; i < arguments.length; i++) ar = ar.concat(__read(arguments[i]));
-    return ar;
-};
 Object.defineProperty(exports, "__esModule", { value: true });
+var tslib_1 = require("tslib");
 /**
  * Repository is supposed to work with your entity objects. Find entities, insert, update, delete, etc.
  */
@@ -75,8 +56,8 @@ var Repository = /** @class */ (function () {
         for (var _i = 1; _i < arguments.length; _i++) {
             entityLikes[_i - 1] = arguments[_i];
         }
-        return (_a = this.manager).merge.apply(_a, __spread([this.metadata.target, mergeIntoEntity], entityLikes));
         var _a;
+        return (_a = this.manager).merge.apply(_a, tslib_1.__spread([this.metadata.target, mergeIntoEntity], entityLikes));
     };
     /**
      * Creates a new entity from the given plan javascript object. If entity already exist in the database, then
@@ -108,8 +89,8 @@ var Repository = /** @class */ (function () {
      * Executes fast and efficient INSERT query.
      * Does not check if entity exist in the database, so query will fail if duplicate entity is being inserted.
      */
-    Repository.prototype.insert = function (entity, options) {
-        return this.manager.insert(this.metadata.target, entity, options);
+    Repository.prototype.insert = function (entity) {
+        return this.manager.insert(this.metadata.target, entity);
     };
     /**
      * Updates entity partially. Entity can be found by a given conditions.
@@ -117,8 +98,8 @@ var Repository = /** @class */ (function () {
      * Executes fast and efficient UPDATE query.
      * Does not check if entity exist in the database.
      */
-    Repository.prototype.update = function (criteria, partialEntity, options) {
-        return this.manager.update(this.metadata.target, criteria, partialEntity, options);
+    Repository.prototype.update = function (criteria, partialEntity) {
+        return this.manager.update(this.metadata.target, criteria, partialEntity);
     };
     /**
      * Deletes entities by a given criteria.
@@ -126,8 +107,14 @@ var Repository = /** @class */ (function () {
      * Executes fast and efficient DELETE query.
      * Does not check if entity exist in the database.
      */
-    Repository.prototype.delete = function (criteria, options) {
-        return this.manager.delete(this.metadata.target, criteria, options);
+    Repository.prototype.delete = function (criteria) {
+        return this.manager.delete(this.metadata.target, criteria);
+    };
+    /**
+     * Counts entities that match given find options or conditions.
+     */
+    Repository.prototype.count = function (optionsOrConditions) {
+        return this.manager.count(this.metadata.target, optionsOrConditions);
     };
     /**
      * Finds entities that match given find options or conditions.
@@ -161,40 +148,6 @@ var Repository = /** @class */ (function () {
      */
     Repository.prototype.findOneOrFail = function (optionsOrConditions, maybeOptions) {
         return this.manager.findOneOrFail(this.metadata.target, optionsOrConditions, maybeOptions);
-    };
-    /**
-     * Counts entities that match given conditions.
-     */
-    Repository.prototype.count = function (conditions, options) {
-        return this.manager.count(this.metadata.target, conditions, options);
-    };
-    /**
-     * Finds entities that match given options and returns observable.
-     * Whenever new data appears that matches given query observable emits new value.
-     */
-    Repository.prototype.observe = function (optionsOrConditions) {
-        return this.manager.observe(this.metadata.target, optionsOrConditions);
-    };
-    /**
-     * Finds entities and count that match given options and returns observable.
-     * Whenever new data appears that matches given query observable emits new value.
-     */
-    Repository.prototype.observeManyAndCount = function (optionsOrConditions) {
-        return this.manager.observeManyAndCount(this.metadata.target, optionsOrConditions);
-    };
-    /**
-     * Finds entity that match given options and returns observable.
-     * Whenever new data appears that matches given query observable emits new value.
-     */
-    Repository.prototype.observeOne = function (optionsOrConditions) {
-        return this.manager.observeOne(this.metadata.target, optionsOrConditions);
-    };
-    /**
-     * Gets the entities count match given options and returns observable.
-     * Whenever new data appears that matches given query observable emits new value.
-     */
-    Repository.prototype.observeCount = function (optionsOrConditions) {
-        return this.manager.observeCount(this.metadata.target, optionsOrConditions);
     };
     /**
      * Executes a raw SQL query and returns a raw database results.

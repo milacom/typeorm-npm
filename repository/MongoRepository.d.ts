@@ -1,10 +1,11 @@
 import { ObjectLiteral } from "../common/ObjectLiteral";
 import { Repository } from "./Repository";
-import { AggregationCursor, BulkWriteOpResultObject, Code, Collection, CollectionAggregationOptions, CollectionBluckWriteOptions, CollectionInsertManyOptions, CollectionInsertOneOptions, CollectionOptions, CollStats, CommandCursor, Cursor, DeleteWriteOpResultObject, FindAndModifyWriteOpResultObject, FindOneAndReplaceOption, GeoHaystackSearchOptions, GeoNearOptions, InsertOneWriteOpResult, InsertWriteOpResult, MapReduceOptions, MongoCountPreferences, MongodbIndexOptions, ObjectID, OrderedBulkOperation, ParallelCollectionScanOptions, ReadPreference, ReplaceOneOptions, UnorderedBulkOperation, UpdateWriteOpResult } from "../driver/mongodb/typings";
+import { FindManyOptions } from "../find-options/FindManyOptions";
+import { FindOneOptions } from "../find-options/FindOneOptions";
+import { AggregationCursor, BulkWriteOpResultObject, Code, Collection, CollectionAggregationOptions, CollectionBulkWriteOptions, CollectionInsertManyOptions, CollectionInsertOneOptions, CollectionOptions, CollStats, CommandCursor, Cursor, DeleteWriteOpResultObject, FindAndModifyWriteOpResultObject, FindOneAndReplaceOption, GeoHaystackSearchOptions, GeoNearOptions, InsertOneWriteOpResult, InsertWriteOpResult, MapReduceOptions, MongoCountPreferences, MongodbIndexOptions, ObjectID, OrderedBulkOperation, ParallelCollectionScanOptions, ReadPreference, ReplaceOneOptions, UnorderedBulkOperation, UpdateWriteOpResult } from "../driver/mongodb/typings";
 import { MongoEntityManager } from "../entity-manager/MongoEntityManager";
 import { QueryRunner } from "../query-runner/QueryRunner";
 import { SelectQueryBuilder } from "../query-builder/SelectQueryBuilder";
-import { FindExtraOptions, FindOptions, FindOptionsWhere } from "../find-options/FindOptions";
 /**
  * Repository used to manage mongodb documents of a single entity type.
  */
@@ -26,22 +27,22 @@ export declare class MongoRepository<Entity extends ObjectLiteral> extends Repos
     /**
      * Finds entities that match given find options or conditions.
      */
-    find(optionsOrConditions?: FindOptions<Entity> | FindOptionsWhere<Entity>): Promise<Entity[]>;
+    find(optionsOrConditions?: FindManyOptions<Entity> | Partial<Entity>): Promise<Entity[]>;
     /**
      * Finds entities that match given find options or conditions.
      * Also counts all entities that match given conditions,
      * but ignores pagination settings (from and take options).
      */
-    findAndCount(optionsOrConditions?: FindOptions<Entity> | FindOptionsWhere<Entity>): Promise<[Entity[], number]>;
+    findAndCount(optionsOrConditions?: FindManyOptions<Entity> | Partial<Entity>): Promise<[Entity[], number]>;
     /**
      * Finds entities by ids.
      * Optionally find options can be applied.
      */
-    findByIds(ids: any[], optionsOrConditions?: FindOptions<Entity> | FindOptionsWhere<Entity>): Promise<Entity[]>;
+    findByIds(ids: any[], optionsOrConditions?: FindManyOptions<Entity> | Partial<Entity>): Promise<Entity[]>;
     /**
      * Finds first entity that matches given conditions and/or find options.
      */
-    findOne(optionsOrConditions?: string | number | Date | ObjectID | FindOptions<Entity> | FindOptionsWhere<Entity>, maybeOptions?: FindOptions<Entity>): Promise<Entity | undefined>;
+    findOne(optionsOrConditions?: string | number | Date | ObjectID | FindOneOptions<Entity> | Partial<Entity>, maybeOptions?: FindOneOptions<Entity>): Promise<Entity | undefined>;
     /**
      * Creates a cursor for a query that can be used to iterate over results from MongoDB.
      */
@@ -63,11 +64,11 @@ export declare class MongoRepository<Entity extends ObjectLiteral> extends Repos
     /**
      * Perform a bulkWrite operation without a fluent API.
      */
-    bulkWrite(operations: ObjectLiteral[], options?: CollectionBluckWriteOptions): Promise<BulkWriteOpResultObject>;
+    bulkWrite(operations: ObjectLiteral[], options?: CollectionBulkWriteOptions): Promise<BulkWriteOpResultObject>;
     /**
      * Count number of matching documents in the db to a query.
      */
-    count(query?: ObjectLiteral, options?: FindExtraOptions, mongoOptions?: MongoCountPreferences): Promise<number>;
+    count(query?: ObjectLiteral, options?: MongoCountPreferences): Promise<number>;
     /**
      * Creates an index on the db and collection.
      */
@@ -189,7 +190,7 @@ export declare class MongoRepository<Entity extends ObjectLiteral> extends Repos
      */
     rename(newName: string, options?: {
         dropTarget?: boolean;
-    }): Promise<Collection>;
+    }): Promise<Collection<any>>;
     /**
      * Replace a document on MongoDB.
      */

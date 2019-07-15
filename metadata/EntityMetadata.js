@@ -1,29 +1,11 @@
 "use strict";
-var __read = (this && this.__read) || function (o, n) {
-    var m = typeof Symbol === "function" && o[Symbol.iterator];
-    if (!m) return o;
-    var i = m.call(o), r, ar = [], e;
-    try {
-        while ((n === void 0 || n-- > 0) && !(r = i.next()).done) ar.push(r.value);
-    }
-    catch (error) { e = { error: error }; }
-    finally {
-        try {
-            if (r && !r.done && (m = i["return"])) m.call(i);
-        }
-        finally { if (e) throw e.error; }
-    }
-    return ar;
-};
-var __spread = (this && this.__spread) || function () {
-    for (var ar = [], i = 0; i < arguments.length; i++) ar = ar.concat(__read(arguments[i]));
-    return ar;
-};
 Object.defineProperty(exports, "__esModule", { value: true });
-var OrmUtils_1 = require("../util/OrmUtils");
+var tslib_1 = require("tslib");
 var PostgresDriver_1 = require("../driver/postgres/PostgresDriver");
 var SqlServerDriver_1 = require("../driver/sqlserver/SqlServerDriver");
 var CannotCreateEntityIdMapError_1 = require("../error/CannotCreateEntityIdMapError");
+var OrmUtils_1 = require("../util/OrmUtils");
+var StringUtils_1 = require("../util/StringUtils");
 /**
  * Contains all entity metadata.
  */
@@ -189,9 +171,17 @@ var EntityMetadata = /** @class */ (function () {
          */
         this.uniques = [];
         /**
+         * Entity's own uniques.
+         */
+        this.ownUniques = [];
+        /**
          * Entity's check metadatas.
          */
         this.checks = [];
+        /**
+         * Entity's exclusion metadatas.
+         */
+        this.exclusions = [];
         /**
          * Entity's own listener metadatas.
          */
@@ -236,6 +226,7 @@ var EntityMetadata = /** @class */ (function () {
         this.tableMetadataArgs = options.args;
         this.target = this.tableMetadataArgs.target;
         this.tableType = this.tableMetadataArgs.type;
+        this.expression = this.tableMetadataArgs.expression;
     }
     // -------------------------------------------------------------------------
     // Public Methods
@@ -360,13 +351,6 @@ var EntityMetadata = /** @class */ (function () {
         return undefined;
     };
     /**
-     * Finds column with a given property path.
-     * Does not search in relation unlike findColumnWithPropertyPath.
-     */
-    EntityMetadata.prototype.findColumnWithPropertyPathStrict = function (propertyPath) {
-        return this.columns.find(function (column) { return column.propertyPath === propertyPath; });
-    };
-    /**
      * Finds columns with a given property path.
      * Property path can match a relation, and relations can contain multiple columns.
      */
@@ -432,7 +416,7 @@ var EntityMetadata = /** @class */ (function () {
             var parentPath = prefix ? prefix + "." + key : key;
             if (metadata.hasEmbeddedWithPropertyPath(parentPath)) {
                 var subPaths = _this.createPropertyPath(metadata, entity[key], parentPath);
-                paths.push.apply(paths, __spread(subPaths));
+                paths.push.apply(paths, tslib_1.__spread(subPaths));
             }
             else {
                 var path = prefix ? prefix + "." + key : key;
@@ -479,8 +463,16 @@ var EntityMetadata = /** @class */ (function () {
         var namingStrategy = this.connection.namingStrategy;
         var entityPrefix = this.connection.options.entityPrefix;
         this.engine = this.tableMetadataArgs.engine;
-        this.database = this.tableMetadataArgs.database;
-        this.schema = this.tableMetadataArgs.schema || this.connection.options.schema;
+        this.database = this.tableMetadataArgs.type === "entity-child" && this.parentEntityMetadata ? this.parentEntityMetadata.database : this.tableMetadataArgs.database;
+        if (this.tableMetadataArgs.schema) {
+            this.schema = this.tableMetadataArgs.schema;
+        }
+        else if ((this.tableMetadataArgs.type === "entity-child") && this.parentEntityMetadata) {
+            this.schema = this.parentEntityMetadata.schema;
+        }
+        else {
+            this.schema = this.connection.options.schema;
+        }
         this.givenTableName = this.tableMetadataArgs.type === "entity-child" && this.parentEntityMetadata ? this.parentEntityMetadata.givenTableName : this.tableMetadataArgs.name;
         this.synchronize = this.tableMetadataArgs.synchronize === false ? false : true;
         this.targetName = this.tableMetadataArgs.target instanceof Function ? this.tableMetadataArgs.target.name : this.tableMetadataArgs.target;
@@ -492,10 +484,14 @@ var EntityMetadata = /** @class */ (function () {
         }
         else {
             this.tableNameWithoutPrefix = namingStrategy.tableName(this.targetName, this.givenTableName);
+            if (this.connection.driver.maxAliasLength && this.connection.driver.maxAliasLength > 0 && this.tableNameWithoutPrefix.length > this.connection.driver.maxAliasLength) {
+                this.tableNameWithoutPrefix = StringUtils_1.shorten(this.tableNameWithoutPrefix, { separator: "_", segmentLength: 3 });
+            }
         }
         this.tableName = entityPrefix ? namingStrategy.prefixTableName(entityPrefix, this.tableNameWithoutPrefix) : this.tableNameWithoutPrefix;
         this.target = this.target ? this.target : this.tableName;
         this.name = this.targetName ? this.targetName : this.tableName;
+        this.expression = this.tableMetadataArgs.expression;
         this.tablePath = this.buildTablePath();
         this.schemaPath = this.buildSchemaPath();
         this.orderBy = (this.tableMetadataArgs.orderBy instanceof Function) ? this.tableMetadataArgs.orderBy(this.propertiesMap) : this.tableMetadataArgs.orderBy; // todo: is propertiesMap available here? Looks like its not

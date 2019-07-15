@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-var _1 = require("../../");
+var __1 = require("../../");
 var ColumnTypeUndefinedError_1 = require("../../error/ColumnTypeUndefinedError");
 /**
  * Column decorator is used to mark a specific class property as a table column.
@@ -30,7 +30,7 @@ function Column(typeOrOptions, options) {
         if (options.type === "hstore" && !options.hstoreType)
             options.hstoreType = reflectMetadataType === Object ? "object" : "string";
         if (typeOrOptions instanceof Function) { // register an embedded
-            _1.getMetadataArgsStorage().embeddeds.push({
+            __1.getMetadataArgsStorage().embeddeds.push({
                 target: object.constructor,
                 propertyName: propertyName,
                 isArray: reflectMetadataType === Array || options.array === true,
@@ -44,13 +44,20 @@ function Column(typeOrOptions, options) {
                 throw new ColumnTypeUndefinedError_1.ColumnTypeUndefinedError(object, propertyName);
             // create unique
             if (options.unique === true)
-                _1.getMetadataArgsStorage().uniques.push({ target: object.constructor, columns: [propertyName] });
-            _1.getMetadataArgsStorage().columns.push({
+                __1.getMetadataArgsStorage().uniques.push({ target: object.constructor, columns: [propertyName] });
+            __1.getMetadataArgsStorage().columns.push({
                 target: object.constructor,
                 propertyName: propertyName,
                 mode: "regular",
                 options: options
             });
+            if (options.generated) {
+                __1.getMetadataArgsStorage().generations.push({
+                    target: object.constructor,
+                    propertyName: propertyName,
+                    strategy: typeof options.generated === "string" ? options.generated : "increment"
+                });
+            }
         }
     };
 }

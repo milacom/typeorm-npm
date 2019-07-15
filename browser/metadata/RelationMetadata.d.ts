@@ -5,6 +5,8 @@ import { ObjectLiteral } from "../common/ObjectLiteral";
 import { ColumnMetadata } from "./ColumnMetadata";
 import { EmbeddedMetadata } from "./EmbeddedMetadata";
 import { RelationMetadataArgs } from "../metadata-args/RelationMetadataArgs";
+import { DeferrableType } from "./types/DeferrableType";
+import { OnUpdateType } from "./types/OnUpdateType";
 import { OnDeleteType } from "./types/OnDeleteType";
 import { PropertyTypeFactory } from "./types/PropertyTypeInFunction";
 /**
@@ -60,11 +62,6 @@ export declare class RelationMetadata {
      */
     propertyPath: string;
     /**
-     * Same as property path, but dots are replaced with '_'.
-     * Used in query builder statements.
-     */
-    propertyAliasName: string;
-    /**
      * Indicates if this is a parent (can be only many-to-one relation) relation in the tree tables.
      */
     isTreeParent: boolean;
@@ -72,6 +69,11 @@ export declare class RelationMetadata {
      * Indicates if this is a children (can be only one-to-many relation) relation in the tree tables.
      */
     isTreeChildren: boolean;
+    /**
+     * Indicates if this relation's column is a primary key.
+     * Can be used only for many-to-one and owner one-to-one relations.
+     */
+    isPrimary: boolean;
     /**
      * Indicates if this relation is lazily loaded.
      */
@@ -107,6 +109,14 @@ export declare class RelationMetadata {
      * What to do with a relation on deletion of the row containing a foreign key.
      */
     onDelete?: OnDeleteType;
+    /**
+     * What to do with a relation on update of the row containing a foreign key.
+     */
+    onUpdate?: OnUpdateType;
+    /**
+     * What to do with a relation on update of the row containing a foreign key.
+     */
+    deferrable?: DeferrableType;
     /**
      * Gets the property's type to which this relation is applied.
      *

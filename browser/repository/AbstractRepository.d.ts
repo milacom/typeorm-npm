@@ -47,5 +47,5 @@ export declare class AbstractRepository<Entity extends ObjectLiteral> {
      * Gets custom repository's managed entity.
      * If given custom repository does not manage any entity then undefined will be returned.
      */
-    private getCustomRepositoryTarget(customRepository);
+    private getCustomRepositoryTarget;
 }

@@ -1,3 +1,4 @@
+import { ColumnMetadata } from "../metadata/ColumnMetadata";
 /**
  * Provides utilities to transform hydrated and persisted data.
  */
@@ -44,12 +45,14 @@ export declare class DateUtils {
     static stringToSimpleArray(value: string | any): string | any;
     static simpleJsonToString(value: any): string;
     static stringToSimpleJson(value: any): any;
+    static simpleEnumToString(value: any): string;
+    static stringToSimpleEnum(value: any, columnMetadata: ColumnMetadata): any;
     /**
      * Formats given number to "0x" format, e.g. if it is 1 then it will return "01".
      */
-    private static formatZerolessValue(value);
+    private static formatZerolessValue;
     /**
      * Formats given number to "0x" format, e.g. if it is 1 then it will return "01".
      */
-    private static formatMilliseconds(value);
+    private static formatMilliseconds;
 }

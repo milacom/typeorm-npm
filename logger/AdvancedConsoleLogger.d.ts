@@ -5,7 +5,7 @@ import { Logger } from "./Logger";
  * This version of logger uses console to log events and use syntax highlighting.
  */
 export declare class AdvancedConsoleLogger implements Logger {
-    private options;
+    private options?;
     constructor(options?: boolean | "all" | ("log" | "info" | "warn" | "query" | "schema" | "error" | "migration")[] | undefined);
     /**
      * Logs query and parameters used in it.

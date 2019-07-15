@@ -7,7 +7,7 @@ export declare class FindOperator<T> {
     /**
      * Operator type.
      */
-    type: FindOperatorType;
+    private _type;
     /**
      * Parameter value.
      */
@@ -34,7 +34,7 @@ export declare class FindOperator<T> {
     /**
      * Gets the final value needs to be used as parameter value.
      */
-    readonly value: T | any;
+    readonly value: T;
     /**
      * Gets SQL needs to be inserted into final query.
      */

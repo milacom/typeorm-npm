@@ -10,14 +10,10 @@ var FindOperator = /** @class */ (function () {
     function FindOperator(type, value, useParameter, multipleParameters) {
         if (useParameter === void 0) { useParameter = true; }
         if (multipleParameters === void 0) { multipleParameters = false; }
-        this.type = type;
+        this._type = type;
+        this._value = value;
         this._useParameter = useParameter;
         this._multipleParameters = multipleParameters;
-        this._value = value;
-        // if (condition !== undefined) {
-        //     this.condition = condition;
-        //     this._useParameter = condition === true ? true : false;
-        // }
     }
     Object.defineProperty(FindOperator.prototype, "useParameter", {
         // -------------------------------------------------------------------------
@@ -67,7 +63,7 @@ var FindOperator = /** @class */ (function () {
      * Gets SQL needs to be inserted into final query.
      */
     FindOperator.prototype.toSql = function (connection, aliasPath, parameters) {
-        switch (this.type) {
+        switch (this._type) {
             case "not":
                 if (this._value instanceof FindOperator) {
                     return "NOT(" + this._value.toSql(connection, aliasPath, parameters) + ")";
@@ -77,14 +73,16 @@ var FindOperator = /** @class */ (function () {
                 }
             case "lessThan":
                 return aliasPath + " < " + parameters[0];
+            case "lessThanOrEqual":
+                return aliasPath + " <= " + parameters[0];
             case "moreThan":
                 return aliasPath + " > " + parameters[0];
+            case "moreThanOrEqual":
+                return aliasPath + " >= " + parameters[0];
             case "equal":
                 return aliasPath + " = " + parameters[0];
             case "like":
                 return aliasPath + " LIKE " + parameters[0];
-            case "ilike":
-                return aliasPath + " ILIKE " + parameters[0];
             case "between":
                 return aliasPath + " BETWEEN " + parameters[0] + " AND " + parameters[1];
             case "in":

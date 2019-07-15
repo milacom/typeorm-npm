@@ -3,8 +3,11 @@ import { EntitySchema } from "../index";
 /**
  * Loads all exported classes from the given directory.
  */
-export function importClassesFromDirectories(directories, formats) {
+export function importClassesFromDirectories(logger, directories, formats) {
     if (formats === void 0) { formats = [".js", ".ts"]; }
+    var logLevel = "info";
+    var classesNotFoundMessage = "No classes were found using the provided glob pattern: ";
+    var classesFoundMessage = "All classes found using provided glob pattern";
     function loadFileClasses(exported, allLoaded) {
         if (typeof exported === "function" || exported instanceof EntitySchema) {
             allLoaded.push(exported);
@@ -12,7 +15,7 @@ export function importClassesFromDirectories(directories, formats) {
         else if (Array.isArray(exported)) {
             exported.forEach(function (i) { return loadFileClasses(i, allLoaded); });
         }
-        else if (typeof exported === "object") {
+        else if (typeof exported === "object" && exported !== null) {
             Object.keys(exported).forEach(function (key) { return loadFileClasses(exported[key], allLoaded); });
         }
         return allLoaded;
@@ -20,6 +23,12 @@ export function importClassesFromDirectories(directories, formats) {
     var allFiles = directories.reduce(function (allDirs, dir) {
         return allDirs.concat(PlatformTools.load("glob").sync(PlatformTools.pathNormalize(dir)));
     }, []);
+    if (directories.length > 0 && allFiles.length === 0) {
+        logger.log(logLevel, classesNotFoundMessage + " \"" + directories + "\"");
+    }
+    else if (allFiles.length > 0) {
+        logger.log(logLevel, classesFoundMessage + " \"" + directories + "\" : \"" + allFiles + "\"");
+    }
     var dirs = allFiles
         .filter(function (file) {
         var dtsExtension = file.substring(file.length - 5, file.length);

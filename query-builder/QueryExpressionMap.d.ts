@@ -37,6 +37,10 @@ export declare class QueryExpressionMap {
      */
     selects: SelectQuery[];
     /**
+     * Whether SELECT is DISTINCT.
+     */
+    selectDistinct: boolean;
+    /**
      * FROM-s to be selected.
      */
     /**
@@ -56,6 +60,18 @@ export declare class QueryExpressionMap {
      * Optional on conflict statement used in insertion query in postgres.
      */
     onConflict: string;
+    /**
+     * Optional on ignore statement used in insertion query in databases.
+     */
+    onIgnore: string | boolean;
+    /**
+     * Optional on update statement used in insertion query in databases.
+     */
+    onUpdate: {
+        columns?: string;
+        conflict?: string;
+        overwrite?: string;
+    };
     /**
      * JOIN queries.
      */
@@ -109,7 +125,7 @@ export declare class QueryExpressionMap {
     /**
      * Locking mode.
      */
-    lockMode?: "optimistic" | "pessimistic_read" | "pessimistic_write";
+    lockMode?: "optimistic" | "pessimistic_read" | "pessimistic_write" | "dirty_read";
     /**
      * Current version of the entity, used for locking.
      */
@@ -194,14 +210,6 @@ export declare class QueryExpressionMap {
      * Indicates if listeners and subscribers must be called before and after query execution.
      */
     callListeners: boolean;
-    /**
-     * Indicates if observers must be called before and after query execution.
-     */
-    callObservers: boolean;
-    /**
-     * Indicates if eager relations are loaded (they are by default).
-     */
-    eagerRelations: boolean;
     /**
      * Indicates if query must be wrapped into transaction.
      */

@@ -4,12 +4,15 @@ import { TableColumn } from "../../schema-builder/table/TableColumn";
 import { Table } from "../../schema-builder/table/Table";
 import { TableForeignKey } from "../../schema-builder/table/TableForeignKey";
 import { TableIndex } from "../../schema-builder/table/TableIndex";
+import { View } from "../../schema-builder/view/View";
+import { Query } from "../Query";
 import { OracleDriver } from "./OracleDriver";
 import { ReadStream } from "../../platform/PlatformTools";
 import { TableUnique } from "../../schema-builder/table/TableUnique";
 import { BaseQueryRunner } from "../../query-runner/BaseQueryRunner";
 import { TableCheck } from "../../schema-builder/table/TableCheck";
 import { IsolationLevel } from "../types/IsolationLevel";
+import { TableExclusion } from "../../schema-builder/table/TableExclusion";
 /**
  * Runs queries on a single oracle database connection.
  */
@@ -105,6 +108,14 @@ export declare class OracleQueryRunner extends BaseQueryRunner implements QueryR
      */
     dropTable(tableOrName: Table | string, ifExist?: boolean, dropForeignKeys?: boolean, dropIndices?: boolean): Promise<void>;
     /**
+     * Creates a new view.
+     */
+    createView(view: View): Promise<void>;
+    /**
+     * Drops the view.
+     */
+    dropView(target: View | string): Promise<void>;
+    /**
      * Renames the given table.
      */
     renameTable(oldTableOrName: Table | string, newTableOrName: Table | string): Promise<void>;
@@ -184,6 +195,22 @@ export declare class OracleQueryRunner extends BaseQueryRunner implements QueryR
      */
     dropCheckConstraints(tableOrName: Table | string, checkConstraints: TableCheck[]): Promise<void>;
     /**
+     * Creates a new exclusion constraint.
+     */
+    createExclusionConstraint(tableOrName: Table | string, exclusionConstraint: TableExclusion): Promise<void>;
+    /**
+     * Creates a new exclusion constraints.
+     */
+    createExclusionConstraints(tableOrName: Table | string, exclusionConstraints: TableExclusion[]): Promise<void>;
+    /**
+     * Drops exclusion constraint.
+     */
+    dropExclusionConstraint(tableOrName: Table | string, exclusionOrName: TableExclusion | string): Promise<void>;
+    /**
+     * Drops exclusion constraints.
+     */
+    dropExclusionConstraints(tableOrName: Table | string, exclusionConstraints: TableExclusion[]): Promise<void>;
+    /**
      * Creates a new foreign key.
      */
     createForeignKey(tableOrName: Table | string, foreignKey: TableForeignKey): Promise<void>;
@@ -224,6 +251,7 @@ export declare class OracleQueryRunner extends BaseQueryRunner implements QueryR
      * Removes all tables from the currently connected database.
      */
     clearDatabase(): Promise<void>;
+    protected loadViews(viewNames: string[]): Promise<View[]>;
     /**
      * Loads all tables (with given names) from the database and creates a Table from them.
      */
@@ -231,51 +259,61 @@ export declare class OracleQueryRunner extends BaseQueryRunner implements QueryR
     /**
      * Builds and returns SQL for create table.
      */
-    protected createTableSql(table: Table, createForeignKeys?: boolean): string;
+    protected createTableSql(table: Table, createForeignKeys?: boolean): Query;
     /**
      * Builds drop table sql.
      */
-    protected dropTableSql(tableOrName: Table | string, ifExist?: boolean): string;
+    protected dropTableSql(tableOrName: Table | string, ifExist?: boolean): Query;
+    protected createViewSql(view: View): Query;
+    protected insertViewDefinitionSql(view: View): Query;
+    /**
+     * Builds drop view sql.
+     */
+    protected dropViewSql(viewOrPath: View | string): Query;
+    /**
+     * Builds remove view sql.
+     */
+    protected deleteViewDefinitionSql(viewOrPath: View | string): Query;
     /**
      * Builds create index sql.
      */
-    protected createIndexSql(table: Table, index: TableIndex): string;
+    protected createIndexSql(table: Table, index: TableIndex): Query;
     /**
      * Builds drop index sql.
      */
-    protected dropIndexSql(indexOrName: TableIndex | string): string;
+    protected dropIndexSql(indexOrName: TableIndex | string): Query;
     /**
      * Builds create primary key sql.
      */
-    protected createPrimaryKeySql(table: Table, columnNames: string[]): string;
+    protected createPrimaryKeySql(table: Table, columnNames: string[]): Query;
     /**
      * Builds drop primary key sql.
      */
-    protected dropPrimaryKeySql(table: Table): string;
+    protected dropPrimaryKeySql(table: Table): Query;
     /**
      * Builds create unique constraint sql.
      */
-    protected createUniqueConstraintSql(table: Table, uniqueConstraint: TableUnique): string;
+    protected createUniqueConstraintSql(table: Table, uniqueConstraint: TableUnique): Query;
     /**
      * Builds drop unique constraint sql.
      */
-    protected dropUniqueConstraintSql(table: Table, uniqueOrName: TableUnique | string): string;
+    protected dropUniqueConstraintSql(table: Table, uniqueOrName: TableUnique | string): Query;
     /**
      * Builds create check constraint sql.
      */
-    protected createCheckConstraintSql(table: Table, checkConstraint: TableCheck): string;
+    protected createCheckConstraintSql(table: Table, checkConstraint: TableCheck): Query;
     /**
      * Builds drop check constraint sql.
      */
-    protected dropCheckConstraintSql(table: Table, checkOrName: TableCheck | string): string;
+    protected dropCheckConstraintSql(table: Table, checkOrName: TableCheck | string): Query;
     /**
      * Builds create foreign key sql.
      */
-    protected createForeignKeySql(table: Table, foreignKey: TableForeignKey): string;
+    protected createForeignKeySql(table: Table, foreignKey: TableForeignKey): Query;
     /**
      * Builds drop foreign key sql.
      */
-    protected dropForeignKeySql(table: Table, foreignKeyOrName: TableForeignKey | string): string;
+    protected dropForeignKeySql(table: Table, foreignKeyOrName: TableForeignKey | string): Query;
     /**
      * Builds a query for create column.
      */

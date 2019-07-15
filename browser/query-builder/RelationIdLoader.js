@@ -1,41 +1,5 @@
-var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
-    return new (P || (P = Promise))(function (resolve, reject) {
-        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
-        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
-        function step(result) { result.done ? resolve(result.value) : new P(function (resolve) { resolve(result.value); }).then(fulfilled, rejected); }
-        step((generator = generator.apply(thisArg, _arguments || [])).next());
-    });
-};
-var __generator = (this && this.__generator) || function (thisArg, body) {
-    var _ = { label: 0, sent: function() { if (t[0] & 1) throw t[1]; return t[1]; }, trys: [], ops: [] }, f, y, t, g;
-    return g = { next: verb(0), "throw": verb(1), "return": verb(2) }, typeof Symbol === "function" && (g[Symbol.iterator] = function() { return this; }), g;
-    function verb(n) { return function (v) { return step([n, v]); }; }
-    function step(op) {
-        if (f) throw new TypeError("Generator is already executing.");
-        while (_) try {
-            if (f = 1, y && (t = y[op[0] & 2 ? "return" : op[0] ? "throw" : "next"]) && !(t = t.call(y, op[1])).done) return t;
-            if (y = 0, t) op = [0, t.value];
-            switch (op[0]) {
-                case 0: case 1: t = op; break;
-                case 4: _.label++; return { value: op[1], done: false };
-                case 5: _.label++; y = op[1]; op = [0]; continue;
-                case 7: op = _.ops.pop(); _.trys.pop(); continue;
-                default:
-                    if (!(t = _.trys, t = t.length > 0 && t[t.length - 1]) && (op[0] === 6 || op[0] === 2)) { _ = 0; continue; }
-                    if (op[0] === 3 && (!t || (op[1] > t[0] && op[1] < t[3]))) { _.label = op[1]; break; }
-                    if (op[0] === 6 && _.label < t[1]) { _.label = t[1]; t = op; break; }
-                    if (t && _.label < t[2]) { _.label = t[2]; _.ops.push(op); break; }
-                    if (t[2]) _.ops.pop();
-                    _.trys.pop(); continue;
-            }
-            op = body.call(thisArg, _);
-        } catch (e) { op = [6, e]; y = 0; } finally { f = t = 0; }
-        if (op[0] & 5) throw op[1]; return { value: op[0] ? op[1] : void 0, done: true };
-    }
-};
-import { OracleDriver } from "../driver/oracle/OracleDriver";
-import { PostgresDriver } from "../driver/postgres/PostgresDriver";
-import { abbreviate } from "../util/StringUtils";
+import * as tslib_1 from "tslib";
+import { RelationMetadata } from "../metadata/RelationMetadata";
 /**
  * Loads relation ids for the given entities.
  */
@@ -46,42 +10,55 @@ var RelationIdLoader = /** @class */ (function () {
     function RelationIdLoader(connection) {
         this.connection = connection;
     }
-    // -------------------------------------------------------------------------
-    // Public Methods
-    // -------------------------------------------------------------------------
     /**
      * Loads relation ids of the given entity or entities.
      */
-    RelationIdLoader.prototype.load = function (relation, entityOrEntities, relatedEntityOrRelatedEntities) {
-        var entities = entityOrEntities instanceof Array ? entityOrEntities : [entityOrEntities];
-        var relatedEntities = relatedEntityOrRelatedEntities instanceof Array ? relatedEntityOrRelatedEntities : (relatedEntityOrRelatedEntities ? [relatedEntityOrRelatedEntities] : undefined);
-        // load relation ids depend of relation type
-        if (relation.isManyToMany) {
-            return this.loadForManyToMany(relation, entities, relatedEntities);
-        }
-        else if (relation.isManyToOne || relation.isOneToOneOwner) {
-            return this.loadForManyToOneAndOneToOneOwner(relation, entities, relatedEntities);
-        }
-        else { // if (relation.isOneToMany || relation.isOneToOneNotOwner) {
-            return this.loadForOneToManyAndOneToOneNotOwner(relation, entities, relatedEntities);
-        }
+    RelationIdLoader.prototype.load = function (relationOrTarget, relationNameOrEntities, entitiesOrRelatedEntities, maybeRelatedEntities) {
+        return tslib_1.__awaiter(this, void 0, void 0, function () {
+            var relation, entities, relatedEntities, entityMetadata;
+            return tslib_1.__generator(this, function (_a) {
+                if (relationOrTarget instanceof RelationMetadata) {
+                    relation = relationOrTarget;
+                    entities = relationNameOrEntities instanceof Array ? relationNameOrEntities : [relationNameOrEntities];
+                    relatedEntities = entitiesOrRelatedEntities instanceof Array ? entitiesOrRelatedEntities : (entitiesOrRelatedEntities ? [entitiesOrRelatedEntities] : undefined);
+                }
+                else {
+                    entityMetadata = this.connection.getMetadata(relationOrTarget);
+                    relation = entityMetadata.findRelationWithPropertyPath(relationNameOrEntities);
+                    if (!relation)
+                        throw new Error("Relation \"" + relation + "\" was not found in \"" + entityMetadata.name + "\".");
+                    entities = entitiesOrRelatedEntities instanceof Array ? entitiesOrRelatedEntities : [entitiesOrRelatedEntities];
+                    relatedEntities = maybeRelatedEntities instanceof Array ? maybeRelatedEntities : (maybeRelatedEntities ? [maybeRelatedEntities] : undefined);
+                }
+                // load relation ids depend of relation type
+                if (relation.isManyToMany) {
+                    return [2 /*return*/, this.loadForManyToMany(relation, entities, relatedEntities)];
+                }
+                else if (relation.isManyToOne || relation.isOneToOneOwner) {
+                    return [2 /*return*/, this.loadForManyToOneAndOneToOneOwner(relation, entities, relatedEntities)];
+                }
+                else { // if (relation.isOneToMany || relation.isOneToOneNotOwner) {
+                    return [2 /*return*/, this.loadForOneToManyAndOneToOneNotOwner(relation, entities, relatedEntities)];
+                }
+                return [2 /*return*/];
+            });
+        });
     };
     /**
      * Loads relation ids of the given entities and groups them into the object with parent and children.
      *
      * todo: extract this method?
      */
-    RelationIdLoader.prototype.loadManyToManyRelationIdsAndGroup = function (relation, entitiesOrEntities, relatedEntityOrEntities, queryBuilder) {
-        return __awaiter(this, void 0, void 0, function () {
-            var _this = this;
+    RelationIdLoader.prototype.loadManyToManyRelationIdsAndGroup = function (relation, entitiesOrEntities, relatedEntityOrEntities) {
+        return tslib_1.__awaiter(this, void 0, void 0, function () {
             var isMany, entities, relationIds, relatedEntities, columns, inverseColumns;
-            return __generator(this, function (_a) {
+            return tslib_1.__generator(this, function (_a) {
                 switch (_a.label) {
                     case 0:
                         isMany = relation.isManyToMany || relation.isOneToMany;
                         entities = entitiesOrEntities instanceof Array ? entitiesOrEntities : [entitiesOrEntities];
                         if (!!relatedEntityOrEntities) return [3 /*break*/, 2];
-                        return [4 /*yield*/, this.connection.relationLoader.load(relation, entitiesOrEntities, undefined, queryBuilder)];
+                        return [4 /*yield*/, this.connection.relationLoader.load(relation, entitiesOrEntities)];
                     case 1:
                         relatedEntityOrEntities = _a.sent();
                         if (!relatedEntityOrEntities.length)
@@ -91,7 +68,6 @@ var RelationIdLoader = /** @class */ (function () {
                     case 3:
                         relationIds = _a.sent();
                         relatedEntities = relatedEntityOrEntities instanceof Array ? relatedEntityOrEntities : [relatedEntityOrEntities];
-                        columns = [], inverseColumns = [];
                         if (relation.isManyToManyOwner) {
                             columns = relation.junctionEntityMetadata.inverseColumns.map(function (column) { return column.referencedColumn; });
                             inverseColumns = relation.junctionEntityMetadata.ownerColumns.map(function (column) { return column.referencedColumn; });
@@ -112,27 +88,25 @@ var RelationIdLoader = /** @class */ (function () {
                         }
                         return [2 /*return*/, entities.map(function (entity) {
                                 var group = { entity: entity, related: isMany ? [] : undefined };
-                                var entityRelationIds = relationIds.filter(function (relationId) {
-                                    return inverseColumns.every(function (column) {
-                                        return column.compareEntityValue(entity, relationId[_this.buildColumnAlias(column.entityMetadata.name, column.propertyAliasName)]);
+                                relationIds.forEach(function (relationId) {
+                                    var entityMatched = inverseColumns.every(function (column) {
+                                        return column.getEntityValue(entity) === relationId[column.entityMetadata.name + "_" + column.propertyPath.replace(".", "_")];
                                     });
-                                });
-                                if (!entityRelationIds.length)
-                                    return group;
-                                relatedEntities.forEach(function (relatedEntity) {
-                                    entityRelationIds.forEach(function (relationId) {
-                                        var relatedEntityMatched = columns.every(function (column) {
-                                            return column.compareEntityValue(relatedEntity, relationId[_this.buildColumnAlias(column.entityMetadata.name, relation.propertyPath.replace(".", "_") + "_" + column.propertyPath.replace(".", "_"))]);
+                                    if (entityMatched) {
+                                        relatedEntities.forEach(function (relatedEntity) {
+                                            var relatedEntityMatched = columns.every(function (column) {
+                                                return column.getEntityValue(relatedEntity) === relationId[column.entityMetadata.name + "_" + relation.propertyPath.replace(".", "_") + "_" + column.propertyPath.replace(".", "_")];
+                                            });
+                                            if (relatedEntityMatched) {
+                                                if (isMany) {
+                                                    group.related.push(relatedEntity);
+                                                }
+                                                else {
+                                                    group.related = relatedEntity;
+                                                }
+                                            }
                                         });
-                                        if (relatedEntityMatched) {
-                                            if (isMany) {
-                                                group.related.push(relatedEntity);
-                                            }
-                                            else {
-                                                group.related = relatedEntity;
-                                            }
-                                        }
-                                    });
+                                    }
                                 });
                                 return group;
                             })];
@@ -185,33 +159,25 @@ var RelationIdLoader = /** @class */ (function () {
      * Loads relation ids for the many-to-many relation.
      */
     RelationIdLoader.prototype.loadForManyToMany = function (relation, entities, relatedEntities) {
-        var _this = this;
         var junctionMetadata = relation.junctionEntityMetadata;
         var mainAlias = junctionMetadata.name;
         var columns = relation.isOwning ? junctionMetadata.ownerColumns : junctionMetadata.inverseColumns;
         var inverseColumns = relation.isOwning ? junctionMetadata.inverseColumns : junctionMetadata.ownerColumns;
         var qb = this.connection.createQueryBuilder();
         // select all columns from junction table
-        columns.forEach(function (column) {
-            var columnName = _this.buildColumnAlias(column.referencedColumn.entityMetadata.name, column.referencedColumn.propertyPath.replace(".", "_"));
+        junctionMetadata.ownerColumns.forEach(function (column) {
+            var columnName = column.referencedColumn.entityMetadata.name + "_" + column.referencedColumn.propertyPath.replace(".", "_");
             qb.addSelect(mainAlias + "." + column.propertyPath, columnName);
         });
-        inverseColumns.forEach(function (column) {
-            var columnName = _this.buildColumnAlias(column.referencedColumn.entityMetadata.name, relation.propertyPath.replace(".", "_") + "_" + column.referencedColumn.propertyPath.replace(".", "_"));
+        junctionMetadata.inverseColumns.forEach(function (column) {
+            var columnName = column.referencedColumn.entityMetadata.name + "_" + relation.propertyPath.replace(".", "_") + "_" + column.referencedColumn.propertyPath.replace(".", "_");
             qb.addSelect(mainAlias + "." + column.propertyPath, columnName);
         });
         // add conditions for the given entities
         var condition1 = "";
         if (columns.length === 1) {
-            var values = entities.map(function (entity) { return columns[0].referencedColumn.getEntityValue(entity); });
-            var areAllNumbers = values.every(function (value) { return typeof value === "number"; });
-            if (areAllNumbers) {
-                qb.where(mainAlias + "." + columns[0].propertyPath + " IN (" + values.join(", ") + ")");
-            }
-            else {
-                qb.setParameter("values1", values);
-                condition1 = mainAlias + "." + columns[0].propertyPath + " IN (:...values1)"; // todo: use ANY for postgres
-            }
+            qb.setParameter("values1", entities.map(function (entity) { return columns[0].referencedColumn.getEntityValue(entity); }));
+            condition1 = mainAlias + "." + columns[0].propertyPath + " IN (:...values1)"; // todo: use ANY for postgres
         }
         else {
             condition1 = "(" + entities.map(function (entity, entityIndex) {
@@ -226,15 +192,8 @@ var RelationIdLoader = /** @class */ (function () {
         var condition2 = "";
         if (relatedEntities) {
             if (inverseColumns.length === 1) {
-                var values = relatedEntities.map(function (entity) { return inverseColumns[0].referencedColumn.getEntityValue(entity); });
-                var areAllNumbers = values.every(function (value) { return typeof value === "number"; });
-                if (areAllNumbers) {
-                    qb.where(mainAlias + "." + columns[0].propertyPath + " IN (" + values.join(", ") + ")");
-                }
-                else {
-                    qb.setParameter("values2", values);
-                    condition2 = mainAlias + "." + inverseColumns[0].propertyPath + " IN (:...values2)"; // todo: use ANY for postgres
-                }
+                qb.setParameter("values2", relatedEntities.map(function (entity) { return inverseColumns[0].referencedColumn.getEntityValue(entity); }));
+                condition2 = mainAlias + "." + inverseColumns[0].propertyPath + " IN (:...values2)"; // todo: use ANY for postgres
             }
             else {
                 condition2 = "(" + relatedEntities.map(function (entity, entityIndex) {
@@ -246,23 +205,6 @@ var RelationIdLoader = /** @class */ (function () {
                 }).map(function (condition) { return "(" + condition + ")"; }).join(" OR ") + ")";
             }
         }
-        // qb.from(junctionMetadata.target, mainAlias)
-        //     .where(condition1 + (condition2 ? " AND " + condition2 : ""));
-        //
-        // // execute query
-        // const { values1, values2 } = qb.getParameters();
-        // console.log(`I can do it`, { values1, values2 });
-        // if (inverseColumns.length === 1 &&
-        //     columns.length === 1 &&
-        //     this.connection.driver instanceof SqliteDriver &&
-        //     (values1.length + values2.length) > 500 &&
-        //     values1.length === values2.length) {
-        //     console.log(`I can do it`);
-        //     return qb.getRawMany();
-        //
-        // } else {
-        //     return qb.getRawMany();
-        // }
         // execute query
         return qb
             .from(junctionMetadata.target, mainAlias)
@@ -273,64 +215,22 @@ var RelationIdLoader = /** @class */ (function () {
      * Loads relation ids for the many-to-one and one-to-one owner relations.
      */
     RelationIdLoader.prototype.loadForManyToOneAndOneToOneOwner = function (relation, entities, relatedEntities) {
-        var _this = this;
         var mainAlias = relation.entityMetadata.targetName;
-        // console.log("entitiesx", entities);
-        // console.log("relatedEntitiesx", relatedEntities);
-        var hasAllJoinColumnsInEntity = relation.joinColumns.every(function (joinColumn) {
-            return !!relation.entityMetadata.nonVirtualColumns.find(function (column) { return column === joinColumn; });
-        });
-        if (relatedEntities && hasAllJoinColumnsInEntity) {
-            var relationIdMaps_1 = [];
-            entities.forEach(function (entity) {
-                var relationIdMap = {};
-                relation.entityMetadata.primaryColumns.forEach(function (primaryColumn) {
-                    var key = _this.buildColumnAlias(primaryColumn.entityMetadata.name, primaryColumn.propertyPath.replace(".", "_"));
-                    relationIdMap[key] = primaryColumn.getEntityValue(entity);
-                });
-                relatedEntities.forEach(function (relatedEntity) {
-                    relation.joinColumns.forEach(function (joinColumn) {
-                        var entityColumnValue = joinColumn.getEntityValue(entity);
-                        var relatedEntityColumnValue = joinColumn.referencedColumn.getEntityValue(relatedEntity);
-                        if (entityColumnValue === undefined || relatedEntityColumnValue === undefined)
-                            return;
-                        if (entityColumnValue === relatedEntityColumnValue) {
-                            var key = _this.buildColumnAlias(joinColumn.referencedColumn.entityMetadata.name, relation.propertyPath.replace(".", "_") + "_" + joinColumn.referencedColumn.propertyPath.replace(".", "_"));
-                            relationIdMap[key] = relatedEntityColumnValue;
-                        }
-                    });
-                });
-                if (Object.keys(relationIdMap).length === relation.entityMetadata.primaryColumns.length + relation.joinColumns.length) {
-                    relationIdMaps_1.push(relationIdMap);
-                }
-            });
-            // console.log("relationIdMap", relationIdMaps);
-            // console.log("entities.length", entities.length);
-            if (relationIdMaps_1.length === entities.length)
-                return Promise.resolve(relationIdMaps_1);
-        }
         // select all columns we need
         var qb = this.connection.createQueryBuilder();
         relation.entityMetadata.primaryColumns.forEach(function (primaryColumn) {
-            var columnName = _this.buildColumnAlias(primaryColumn.entityMetadata.name, primaryColumn.propertyPath.replace(".", "_"));
+            var columnName = primaryColumn.entityMetadata.name + "_" + primaryColumn.propertyPath.replace(".", "_");
             qb.addSelect(mainAlias + "." + primaryColumn.propertyPath, columnName);
         });
         relation.joinColumns.forEach(function (column) {
-            var columnName = _this.buildColumnAlias(column.referencedColumn.entityMetadata.name, relation.propertyPath.replace(".", "_") + "_" + column.referencedColumn.propertyPath.replace(".", "_"));
+            var columnName = column.referencedColumn.entityMetadata.name + "_" + relation.propertyPath.replace(".", "_") + "_" + column.referencedColumn.propertyPath.replace(".", "_");
             qb.addSelect(mainAlias + "." + column.propertyPath, columnName);
         });
         // add condition for entities
         var condition = "";
         if (relation.entityMetadata.primaryColumns.length === 1) {
-            var values = entities.map(function (entity) { return relation.entityMetadata.primaryColumns[0].getEntityValue(entity); });
-            var areAllNumbers = values.every(function (value) { return typeof value === "number"; });
-            if (areAllNumbers) {
-                condition = mainAlias + "." + relation.entityMetadata.primaryColumns[0].propertyPath + " IN (" + values.join(", ") + ")";
-            }
-            else {
-                qb.setParameter("values", values);
-                condition = mainAlias + "." + relation.entityMetadata.primaryColumns[0].propertyPath + " IN (:...values)"; // todo: use ANY for postgres
-            }
+            qb.setParameter("values", entities.map(function (entity) { return relation.entityMetadata.primaryColumns[0].getEntityValue(entity); }));
+            condition = mainAlias + "." + relation.entityMetadata.primaryColumns[0].propertyPath + " IN (:...values)";
         }
         else {
             condition = entities.map(function (entity, entityIndex) {
@@ -350,50 +250,23 @@ var RelationIdLoader = /** @class */ (function () {
      * Loads relation ids for the one-to-many and one-to-one not owner relations.
      */
     RelationIdLoader.prototype.loadForOneToManyAndOneToOneNotOwner = function (relation, entities, relatedEntities) {
-        var _this = this;
         relation = relation.inverseRelation;
-        if (relation.entityMetadata.primaryColumns.length === relation.joinColumns.length) {
-            var sameReferencedColumns = relation.entityMetadata.primaryColumns.every(function (column) {
-                return relation.joinColumns.indexOf(column) !== -1;
-            });
-            if (sameReferencedColumns) {
-                var that_1 = this;
-                return Promise.resolve(entities.map(function (entity) {
-                    var result = {};
-                    relation.joinColumns.forEach(function (joinColumn) {
-                        var value = joinColumn.referencedColumn.getEntityValue(entity);
-                        var joinColumnName = that_1.buildColumnAlias(joinColumn.referencedColumn.entityMetadata.name, joinColumn.referencedColumn.propertyPath.replace(".", "_"));
-                        var primaryColumnName = that_1.buildColumnAlias(joinColumn.entityMetadata.name, relation.inverseRelation.propertyPath.replace(".", "_") + "_" + joinColumn.propertyPath.replace(".", "_"));
-                        result[joinColumnName] = value;
-                        result[primaryColumnName] = value;
-                    });
-                    return result;
-                }));
-            }
-        }
         var mainAlias = relation.entityMetadata.targetName;
         // select all columns we need
         var qb = this.connection.createQueryBuilder();
         relation.entityMetadata.primaryColumns.forEach(function (primaryColumn) {
-            var columnName = _this.buildColumnAlias(primaryColumn.entityMetadata.name, relation.inverseRelation.propertyPath.replace(".", "_") + "_" + primaryColumn.propertyPath.replace(".", "_"));
+            var columnName = primaryColumn.entityMetadata.name + "_" + relation.inverseRelation.propertyPath.replace(".", "_") + "_" + primaryColumn.propertyPath.replace(".", "_");
             qb.addSelect(mainAlias + "." + primaryColumn.propertyPath, columnName);
         });
         relation.joinColumns.forEach(function (column) {
-            var columnName = _this.buildColumnAlias(column.referencedColumn.entityMetadata.name, column.referencedColumn.propertyPath.replace(".", "_"));
+            var columnName = column.referencedColumn.entityMetadata.name + "_" + column.referencedColumn.propertyPath.replace(".", "_");
             qb.addSelect(mainAlias + "." + column.propertyPath, columnName);
         });
         // add condition for entities
         var condition = "";
         if (relation.joinColumns.length === 1) {
-            var values = entities.map(function (entity) { return relation.joinColumns[0].referencedColumn.getEntityValue(entity); });
-            var areAllNumbers = values.every(function (value) { return typeof value === "number"; });
-            if (areAllNumbers) {
-                condition = mainAlias + "." + relation.joinColumns[0].propertyPath + " IN (" + values.join(", ") + ")";
-            }
-            else {
-                qb.setParameter("values", values);
-                condition = mainAlias + "." + relation.joinColumns[0].propertyPath + " IN (:...values)"; // todo: use ANY for postgres
-            }
+            qb.setParameter("values", entities.map(function (entity) { return relation.joinColumns[0].referencedColumn.getEntityValue(entity); }));
+            condition = mainAlias + "." + relation.joinColumns[0].propertyPath + " IN (:...values)";
         }
         else {
             condition = entities.map(function (entity, entityIndex) {
@@ -408,17 +281,6 @@ var RelationIdLoader = /** @class */ (function () {
         return qb.from(relation.entityMetadata.target, mainAlias)
             .where(condition)
             .getRawMany();
-    };
-    /**
-     * Builds column alias from given alias name and column name,
-     * If alias length is more than 29, abbreviates column name.
-     */
-    RelationIdLoader.prototype.buildColumnAlias = function (aliasName, columnName) {
-        var columnAliasName = aliasName + "_" + columnName;
-        if ((columnAliasName.length > 29 && this.connection.driver instanceof OracleDriver) ||
-            (columnAliasName.length > 63 && this.connection.driver instanceof PostgresDriver))
-            return aliasName + "_" + abbreviate(columnName, 2);
-        return columnAliasName;
     };
     return RelationIdLoader;
 }());

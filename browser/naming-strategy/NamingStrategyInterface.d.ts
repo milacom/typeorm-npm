@@ -59,6 +59,10 @@ export interface NamingStrategyInterface {
      */
     checkConstraintName(tableOrName: Table | string, expression: string): string;
     /**
+     * Gets the name of the exclusion constraint.
+     */
+    exclusionConstraintName(tableOrName: Table | string, expression: string): string;
+    /**
      * Gets the name of the join column used in the one-to-one and many-to-one relations.
      */
     joinColumnName(relationName: string, referencedColumnName: string): string;
@@ -89,4 +93,8 @@ export interface NamingStrategyInterface {
      * Note that table name comes here already normalized by #tableName method.
      */
     prefixTableName(prefix: string, tableName: string): string;
+    /**
+     * Gets the name of the alias used for relation joins.
+     */
+    eagerJoinRelationAlias(alias: string, propertyPath: string): string;
 }

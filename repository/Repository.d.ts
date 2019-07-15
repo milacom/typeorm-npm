@@ -1,19 +1,19 @@
-/// <reference types="zen-observable" />
-import { DeepPartial } from "../common/DeepPartial";
-import { ObjectLiteral } from "../common/ObjectLiteral";
-import { ObjectID } from "../driver/mongodb/typings";
-import { EntityManager } from "../entity-manager/EntityManager";
-import { FindExtraOptions, FindOptions, FindOptionsWhere } from "../find-options/FindOptions";
 import { EntityMetadata } from "../metadata/EntityMetadata";
-import { QueryPartialEntity } from "../query-builder/QueryPartialEntity";
-import { DeleteResult } from "../query-builder/result/DeleteResult";
-import { InsertResult } from "../query-builder/result/InsertResult";
-import { UpdateResult } from "../query-builder/result/UpdateResult";
-import { SelectQueryBuilder } from "../query-builder/SelectQueryBuilder";
-import { QueryRunner } from "../query-runner/QueryRunner";
-import { RemoveOptions } from "./RemoveOptions";
+import { FindManyOptions } from "../find-options/FindManyOptions";
+import { ObjectLiteral } from "../common/ObjectLiteral";
+import { FindOneOptions } from "../find-options/FindOneOptions";
+import { DeepPartial } from "../common/DeepPartial";
 import { SaveOptions } from "./SaveOptions";
-import Observable = require("zen-observable");
+import { RemoveOptions } from "./RemoveOptions";
+import { EntityManager } from "../entity-manager/EntityManager";
+import { QueryRunner } from "../query-runner/QueryRunner";
+import { SelectQueryBuilder } from "../query-builder/SelectQueryBuilder";
+import { DeleteResult } from "../query-builder/result/DeleteResult";
+import { UpdateResult } from "../query-builder/result/UpdateResult";
+import { InsertResult } from "../query-builder/result/InsertResult";
+import { QueryDeepPartialEntity } from "../query-builder/QueryPartialEntity";
+import { ObjectID } from "../driver/mongodb/typings";
+import { FindConditions } from "../find-options/FindConditions";
 /**
  * Repository is supposed to work with your entity objects. Find entities, insert, update, delete, etc.
  */
@@ -81,12 +81,26 @@ export declare class Repository<Entity extends ObjectLiteral> {
      * Saves all given entities in the database.
      * If entities do not exist in the database then inserts, otherwise updates.
      */
-    save<T extends DeepPartial<Entity>>(entities: T[], options?: SaveOptions): Promise<T[]>;
+    save<T extends DeepPartial<Entity>>(entities: T[], options: SaveOptions & {
+        reload: false;
+    }): Promise<T[]>;
+    /**
+     * Saves all given entities in the database.
+     * If entities do not exist in the database then inserts, otherwise updates.
+     */
+    save<T extends DeepPartial<Entity>>(entities: T[], options?: SaveOptions): Promise<(T & Entity)[]>;
     /**
      * Saves a given entity in the database.
      * If entity does not exist in the database then inserts, otherwise updates.
      */
-    save<T extends DeepPartial<Entity>>(entity: T, options?: SaveOptions): Promise<T>;
+    save<T extends DeepPartial<Entity>>(entity: T, options: SaveOptions & {
+        reload: false;
+    }): Promise<T>;
+    /**
+     * Saves a given entity in the database.
+     * If entity does not exist in the database then inserts, otherwise updates.
+     */
+    save<T extends DeepPartial<Entity>>(entity: T, options?: SaveOptions): Promise<T & Entity>;
     /**
      * Removes a given entities from the database.
      */
@@ -101,119 +115,83 @@ export declare class Repository<Entity extends ObjectLiteral> {
      * Executes fast and efficient INSERT query.
      * Does not check if entity exist in the database, so query will fail if duplicate entity is being inserted.
      */
-    insert(entity: QueryPartialEntity<Entity> | (QueryPartialEntity<Entity>[]), options?: SaveOptions): Promise<InsertResult>;
+    insert(entity: QueryDeepPartialEntity<Entity> | (QueryDeepPartialEntity<Entity>[])): Promise<InsertResult>;
     /**
      * Updates entity partially. Entity can be found by a given conditions.
      * Unlike save method executes a primitive operation without cascades, relations and other operations included.
      * Executes fast and efficient UPDATE query.
      * Does not check if entity exist in the database.
      */
-    update(criteria: string | string[] | number | number[] | Date | Date[] | ObjectID | ObjectID[] | FindOptionsWhere<Entity>, partialEntity: DeepPartial<Entity>, options?: SaveOptions): Promise<UpdateResult>;
+    update(criteria: string | string[] | number | number[] | Date | Date[] | ObjectID | ObjectID[] | FindConditions<Entity>, partialEntity: QueryDeepPartialEntity<Entity>): Promise<UpdateResult>;
     /**
      * Deletes entities by a given criteria.
      * Unlike save method executes a primitive operation without cascades, relations and other operations included.
      * Executes fast and efficient DELETE query.
      * Does not check if entity exist in the database.
      */
-    delete(criteria: string | string[] | number | number[] | Date | Date[] | ObjectID | ObjectID[] | FindOptionsWhere<Entity>, options?: RemoveOptions): Promise<DeleteResult>;
+    delete(criteria: string | string[] | number | number[] | Date | Date[] | ObjectID | ObjectID[] | FindConditions<Entity>): Promise<DeleteResult>;
+    /**
+     * Counts entities that match given options.
+     */
+    count(options?: FindManyOptions<Entity>): Promise<number>;
+    /**
+     * Counts entities that match given conditions.
+     */
+    count(conditions?: FindConditions<Entity>): Promise<number>;
     /**
      * Finds entities that match given options.
      */
-    find(options?: FindOptions<Entity>): Promise<Entity[]>;
+    find(options?: FindManyOptions<Entity>): Promise<Entity[]>;
     /**
      * Finds entities that match given conditions.
      */
-    find(conditions?: FindOptionsWhere<Entity>): Promise<Entity[]>;
+    find(conditions?: FindConditions<Entity>): Promise<Entity[]>;
     /**
      * Finds entities that match given find options.
      * Also counts all entities that match given conditions,
      * but ignores pagination settings (from and take options).
      */
-    findAndCount(options?: FindOptions<Entity>): Promise<[Entity[], number]>;
+    findAndCount(options?: FindManyOptions<Entity>): Promise<[Entity[], number]>;
     /**
      * Finds entities that match given conditions.
      * Also counts all entities that match given conditions,
      * but ignores pagination settings (from and take options).
      */
-    findAndCount(conditions?: FindOptionsWhere<Entity>): Promise<[Entity[], number]>;
+    findAndCount(conditions?: FindConditions<Entity>): Promise<[Entity[], number]>;
     /**
      * Finds entities by ids.
      * Optionally find options can be applied.
      */
-    findByIds(ids: any[], options?: FindOptions<Entity>): Promise<Entity[]>;
+    findByIds(ids: any[], options?: FindManyOptions<Entity>): Promise<Entity[]>;
     /**
      * Finds entities by ids.
      * Optionally conditions can be applied.
      */
-    findByIds(ids: any[], conditions?: FindOptionsWhere<Entity>): Promise<Entity[]>;
+    findByIds(ids: any[], conditions?: FindConditions<Entity>): Promise<Entity[]>;
     /**
      * Finds first entity that matches given options.
      */
-    findOne(id?: string | number | Date | ObjectID, options?: FindOptions<Entity>): Promise<Entity | undefined>;
+    findOne(id?: string | number | Date | ObjectID, options?: FindOneOptions<Entity>): Promise<Entity | undefined>;
     /**
      * Finds first entity that matches given options.
      */
-    findOne(options?: FindOptions<Entity>): Promise<Entity | undefined>;
+    findOne(options?: FindOneOptions<Entity>): Promise<Entity | undefined>;
     /**
      * Finds first entity that matches given conditions.
      */
-    findOne(conditions?: FindOptionsWhere<Entity>, options?: FindOptions<Entity>): Promise<Entity | undefined>;
+    findOne(conditions?: FindConditions<Entity>, options?: FindOneOptions<Entity>): Promise<Entity | undefined>;
     /**
      * Finds first entity that matches given options.
      */
-    findOneOrFail(id?: string | number | Date | ObjectID, options?: FindOptions<Entity>): Promise<Entity>;
+    findOneOrFail(id?: string | number | Date | ObjectID, options?: FindOneOptions<Entity>): Promise<Entity>;
     /**
      * Finds first entity that matches given options.
      */
-    findOneOrFail(options?: FindOptions<Entity>): Promise<Entity>;
+    findOneOrFail(options?: FindOneOptions<Entity>): Promise<Entity>;
     /**
      * Finds first entity that matches given conditions.
      */
-    findOneOrFail(conditions?: FindOptionsWhere<Entity>, options?: FindOptions<Entity>): Promise<Entity>;
-    /**
-     * Counts entities that match given conditions.
-     */
-    count(conditions?: FindOptionsWhere<Entity>, options?: FindExtraOptions): Promise<number>;
-    /**
-     * Finds entities that match given options and returns observable.
-     * Whenever new data appears that matches given query observable emits new value.
-     */
-    observe<Entity>(options?: FindOptions<Entity>): Observable<Entity[]>;
-    /**
-     * Finds entities that match given conditions and returns observable.
-     * Whenever new data appears that matches given query observable emits new value.
-     */
-    observe<Entity>(conditions?: FindOptionsWhere<Entity>): Observable<Entity[]>;
-    /**
-     * Finds entities and count that match given options and returns observable.
-     * Whenever new data appears that matches given query observable emits new value.
-     */
-    observeManyAndCount<Entity>(options?: FindOptions<Entity>): Observable<[Entity[], number]>;
-    /**
-     * Finds entities and count that match given conditions and returns observable.
-     * Whenever new data appears that matches given query observable emits new value.
-     */
-    observeManyAndCount<Entity>(conditions?: FindOptionsWhere<Entity>): Observable<[Entity[], number]>;
-    /**
-     * Finds entity that match given options and returns observable.
-     * Whenever new data appears that matches given query observable emits new value.
-     */
-    observeOne<Entity>(options?: FindOptions<Entity>): Observable<Entity>;
-    /**
-     * Finds entity that match given conditions and returns observable.
-     * Whenever new data appears that matches given query observable emits new value.
-     */
-    observeOne<Entity>(conditions?: FindOptionsWhere<Entity>): Observable<Entity>;
-    /**
-     * Gets the entities count match given options and returns observable.
-     * Whenever new data appears that matches given query observable emits new value.
-     */
-    observeCount<Entity>(options?: FindOptions<Entity>): Observable<number>;
-    /**
-     * Gets the entities count match given options and returns observable.
-     * Whenever new data appears that matches given query observable emits new value.
-     */
-    observeCount<Entity>(conditions?: FindOptionsWhere<Entity>): Observable<number>;
+    findOneOrFail(conditions?: FindConditions<Entity>, options?: FindOneOptions<Entity>): Promise<Entity>;
     /**
      * Executes a raw SQL query and returns a raw database results.
      * Raw query execution is supported only by relational databases (MongoDB is not supported).
@@ -229,9 +207,9 @@ export declare class Repository<Entity extends ObjectLiteral> {
     /**
      * Increments some column by provided value of the entities matched given conditions.
      */
-    increment(conditions: FindOptionsWhere<Entity>, propertyPath: string, value: number): Promise<void>;
+    increment(conditions: FindConditions<Entity>, propertyPath: string, value: number | string): Promise<UpdateResult>;
     /**
      * Decrements some column by provided value of the entities matched given conditions.
      */
-    decrement(conditions: FindOptionsWhere<Entity>, propertyPath: string, value: number): Promise<void>;
+    decrement(conditions: FindConditions<Entity>, propertyPath: string, value: number | string): Promise<UpdateResult>;
 }

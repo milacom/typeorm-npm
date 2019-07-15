@@ -1,28 +1,11 @@
 "use strict";
-var __read = (this && this.__read) || function (o, n) {
-    var m = typeof Symbol === "function" && o[Symbol.iterator];
-    if (!m) return o;
-    var i = m.call(o), r, ar = [], e;
-    try {
-        while ((n === void 0 || n-- > 0) && !(r = i.next()).done) ar.push(r.value);
-    }
-    catch (error) { e = { error: error }; }
-    finally {
-        try {
-            if (r && !r.done && (m = i["return"])) m.call(i);
-        }
-        finally { if (e) throw e.error; }
-    }
-    return ar;
-};
-var __spread = (this && this.__spread) || function () {
-    for (var ar = [], i = 0; i < arguments.length; i++) ar = ar.concat(__read(arguments[i]));
-    return ar;
-};
 Object.defineProperty(exports, "__esModule", { value: true });
+var tslib_1 = require("tslib");
+var OrmUtils_1 = require("../util/OrmUtils");
 var MongoDriver_1 = require("../driver/mongodb/MongoDriver");
 var PromiseUtils_1 = require("../util/PromiseUtils");
 var FindOperator_1 = require("../find-options/FindOperator");
+var ApplyValueTransformers_1 = require("../util/ApplyValueTransformers");
 /**
  * This metadata contains all information about entity's column.
  */
@@ -52,9 +35,13 @@ var ColumnMetadata = /** @class */ (function () {
          */
         this.isSelect = true;
         /**
-         * Indicates if column is protected from updates or not.
+         * Indicates if column is inserted by default or not.
          */
-        this.isReadonly = false;
+        this.isInsert = true;
+        /**
+         * Indicates if column allows updates or not.
+         */
+        this.isUpdate = true;
         /**
          * Column comment.
          * This feature is not supported by all databases.
@@ -143,8 +130,12 @@ var ColumnMetadata = /** @class */ (function () {
             this.isNullable = options.args.options.nullable;
         if (options.args.options.select !== undefined)
             this.isSelect = options.args.options.select;
+        if (options.args.options.insert !== undefined)
+            this.isInsert = options.args.options.insert;
+        if (options.args.options.update !== undefined)
+            this.isUpdate = options.args.options.update;
         if (options.args.options.readonly !== undefined)
-            this.isReadonly = options.args.options.readonly;
+            this.isUpdate = !options.args.options.readonly;
         if (options.args.options.comment)
             this.comment = options.args.options.comment;
         if (options.args.options.default !== undefined)
@@ -162,10 +153,10 @@ var ColumnMetadata = /** @class */ (function () {
         if (options.args.options.precision !== undefined)
             this.precision = options.args.options.precision;
         if (options.args.options.enum) {
-            if (options.args.options.enum instanceof Object) {
-                this.enum = Object.keys(options.args.options.enum).map(function (key) {
-                    return options.args.options.enum[key];
-                });
+            if (options.args.options.enum instanceof Object && !Array.isArray(options.args.options.enum)) {
+                this.enum = Object.keys(options.args.options.enum)
+                    .filter(function (key) { return isNaN(+key); }) // remove numeric keys - typescript numeric enum types generate them
+                    .map(function (key) { return options.args.options.enum[key]; });
             }
             else {
                 this.enum = options.args.options.enum;
@@ -231,13 +222,14 @@ var ColumnMetadata = /** @class */ (function () {
     ColumnMetadata.prototype.createValueMap = function (value, useDatabaseName) {
         var _this = this;
         if (useDatabaseName === void 0) { useDatabaseName = false; }
+        var _a;
         // extract column value from embeds of entity if column is in embedded
         if (this.embeddedMetadata) {
             // example: post[data][information][counters].id where "data", "information" and "counters" are embeddeds
             // we need to get value of "id" column from the post real entity object and return it in a
             // { data: { information: { counters: { id: ... } } } } format
             // first step - we extract all parent properties of the entity relative to this column, e.g. [data, information, counters]
-            var propertyNames = __spread(this.embeddedMetadata.parentPropertyNames);
+            var propertyNames = tslib_1.__spread(this.embeddedMetadata.parentPropertyNames);
             // now need to access post[data][information][counters] to get column value from the counters
             // and on each step we need to create complex literal object, e.g. first { data },
             // then { data: { information } }, then { data: { information: { counters } } },
@@ -251,7 +243,7 @@ var ColumnMetadata = /** @class */ (function () {
                     return map;
                 }
                 // this is bugfix for #720 when increment number is bigint we need to make sure its a string
-                if (_this.generationStrategy === "increment" && _this.type === "bigint")
+                if ((_this.generationStrategy === "increment" || _this.generationStrategy === "rowid") && _this.type === "bigint")
                     value = String(value);
                 map[useDatabaseName ? _this.databaseName : _this.propertyName] = value;
                 return map;
@@ -260,11 +252,10 @@ var ColumnMetadata = /** @class */ (function () {
         }
         else { // no embeds - no problems. Simply return column property name and its value of the entity
             // this is bugfix for #720 when increment number is bigint we need to make sure its a string
-            if (this.generationStrategy === "increment" && this.type === "bigint")
+            if ((this.generationStrategy === "increment" || this.generationStrategy === "rowid") && this.type === "bigint")
                 value = String(value);
             return _a = {}, _a[useDatabaseName ? this.databaseName : this.propertyName] = value, _a;
         }
-        var _a;
     };
     /**
      * Extracts column value and returns its column name with this value in a literal object.
@@ -275,6 +266,7 @@ var ColumnMetadata = /** @class */ (function () {
      */
     ColumnMetadata.prototype.getEntityValueMap = function (entity, options) {
         var _this = this;
+        var _a, _b;
         var returnNulls = false; // options && options.skipNulls === false ? false : true; // todo: remove if current will not bring problems, uncomment if it will.
         // extract column value from embeds of entity if column is in embedded
         if (this.embeddedMetadata) {
@@ -282,7 +274,7 @@ var ColumnMetadata = /** @class */ (function () {
             // we need to get value of "id" column from the post real entity object and return it in a
             // { data: { information: { counters: { id: ... } } } } format
             // first step - we extract all parent properties of the entity relative to this column, e.g. [data, information, counters]
-            var propertyNames = __spread(this.embeddedMetadata.parentPropertyNames);
+            var propertyNames = tslib_1.__spread(this.embeddedMetadata.parentPropertyNames);
             // now need to access post[data][information][counters] to get column value from the counters
             // and on each step we need to create complex literal object, e.g. first { data },
             // then { data: { information } }, then { data: { information: { counters } } },
@@ -309,38 +301,39 @@ var ColumnMetadata = /** @class */ (function () {
             return Object.keys(map).length > 0 ? map : undefined;
         }
         else { // no embeds - no problems. Simply return column property name and its value of the entity
-            /*if (this.relationMetadata && entity[this.propertyName] && entity[this.propertyName] instanceof Object) { // commented since functionality is suspicious no failing test was found
-                const map = this.relationMetadata.joinColumns.reduce((map, joinColumn) => {
-                    const value = joinColumn.referencedColumn!.getEntityValueMap(entity[this.propertyName]);
-                    if (value === undefined) return map;
-                    return OrmUtils.mergeDeep(map, value);
+            if (this.relationMetadata && entity[this.propertyName] && entity[this.propertyName] instanceof Object) {
+                var map = this.relationMetadata.joinColumns.reduce(function (map, joinColumn) {
+                    var value = joinColumn.referencedColumn.getEntityValueMap(entity[_this.propertyName]);
+                    if (value === undefined)
+                        return map;
+                    return OrmUtils_1.OrmUtils.mergeDeep(map, value);
                 }, {});
                 if (Object.keys(map).length > 0)
-                    return { [this.propertyName]: map };
-
+                    return _a = {}, _a[this.propertyName] = map, _a;
                 return undefined;
-            } else {*/
-            if (entity[this.propertyName] !== undefined && (returnNulls === false || entity[this.propertyName] !== null))
-                return _a = {}, _a[this.propertyName] = entity[this.propertyName], _a;
-            return undefined;
-            // }
+            }
+            else {
+                if (entity[this.propertyName] !== undefined && (returnNulls === false || entity[this.propertyName] !== null))
+                    return _b = {}, _b[this.propertyName] = entity[this.propertyName], _b;
+                return undefined;
+            }
         }
-        var _a;
     };
     /**
      * Extracts column value from the given entity.
      * If column is in embedded (or recursive embedded) it extracts its value from there.
      */
     ColumnMetadata.prototype.getEntityValue = function (entity, transform) {
-        // if (entity === undefined || entity === null) return undefined; // uncomment if needed
         if (transform === void 0) { transform = false; }
+        if (entity === undefined || entity === null)
+            return undefined;
         // extract column value from embeddeds of entity if column is in embedded
         var value = undefined;
         if (this.embeddedMetadata) {
             // example: post[data][information][counters].id where "data", "information" and "counters" are embeddeds
             // we need to get value of "id" column from the post real entity object
             // first step - we extract all parent properties of the entity relative to this column, e.g. [data, information, counters]
-            var propertyNames = __spread(this.embeddedMetadata.parentPropertyNames);
+            var propertyNames = tslib_1.__spread(this.embeddedMetadata.parentPropertyNames);
             // next we need to access post[data][information][counters][this.propertyName] to get column value from the counters
             // this recursive function takes array of generated property names and gets the post[data][information][counters] embed
             var extractEmbeddedColumnValue_3 = function (propertyNames, value) {
@@ -391,7 +384,7 @@ var ColumnMetadata = /** @class */ (function () {
             }
         }
         if (transform && this.transformer)
-            value = this.transformer.to(value);
+            value = ApplyValueTransformers_1.ApplyValueTransformers.transformTo(this.transformer, value);
         return value;
     };
     /**
@@ -415,21 +408,11 @@ var ColumnMetadata = /** @class */ (function () {
                 map[_this.propertyName] = value;
                 return map;
             };
-            return extractEmbeddedColumnValue_4(__spread(this.embeddedMetadata.embeddedMetadataTree), entity);
+            return extractEmbeddedColumnValue_4(tslib_1.__spread(this.embeddedMetadata.embeddedMetadataTree), entity);
         }
         else {
             entity[this.propertyName] = value;
         }
-    };
-    /**
-     * Compares given entity's column value with a given value.
-     */
-    ColumnMetadata.prototype.compareEntityValue = function (entity, valueToCompareWith) {
-        var columnValue = this.getEntityValue(entity);
-        if (columnValue instanceof Object) {
-            return columnValue.equals(valueToCompareWith);
-        }
-        return columnValue === valueToCompareWith;
     };
     // ---------------------------------------------------------------------
     // Builder Methods

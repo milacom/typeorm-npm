@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-var _1 = require("../");
+var __1 = require("../");
 /**
  * Used to declare a class as a custom repository.
  * Custom repository can manage some specific entity or just be generic.
@@ -8,7 +8,7 @@ var _1 = require("../");
  */
 function EntityRepository(entity) {
     return function (target) {
-        _1.getMetadataArgsStorage().entityRepositories.push({
+        __1.getMetadataArgsStorage().entityRepositories.push({
             target: target,
             entity: entity,
         });

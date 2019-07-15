@@ -4,7 +4,8 @@ import { TableColumn } from "../../schema-builder/table/TableColumn";
 import { Table } from "../../schema-builder/table/Table";
 import { TableForeignKey } from "../../schema-builder/table/TableForeignKey";
 import { TableIndex } from "../../schema-builder/table/TableIndex";
-import { AggregationCursor, BulkWriteOpResultObject, Code, Collection, CollectionAggregationOptions, CollectionBluckWriteOptions, CollectionInsertManyOptions, CollectionInsertOneOptions, CollectionOptions, CollStats, CommandCursor, Cursor, Db, DeleteWriteOpResultObject, FindAndModifyWriteOpResultObject, FindOneAndReplaceOption, GeoHaystackSearchOptions, GeoNearOptions, InsertOneWriteOpResult, InsertWriteOpResult, MapReduceOptions, MongoCountPreferences, MongodbIndexOptions, OrderedBulkOperation, ParallelCollectionScanOptions, ReadPreference, ReplaceOneOptions, UnorderedBulkOperation, UpdateWriteOpResult } from "./typings";
+import { View } from "../../schema-builder/view/View";
+import { AggregationCursor, BulkWriteOpResultObject, ChangeStream, ChangeStreamOptions, Code, Collection, CollectionAggregationOptions, CollectionBulkWriteOptions, CollectionInsertManyOptions, CollectionInsertOneOptions, CollectionOptions, CollStats, CommandCursor, Cursor, Db, DeleteWriteOpResultObject, FindAndModifyWriteOpResultObject, FindOneAndReplaceOption, GeoHaystackSearchOptions, GeoNearOptions, InsertOneWriteOpResult, InsertWriteOpResult, MapReduceOptions, MongoCountPreferences, MongodbIndexOptions, OrderedBulkOperation, ParallelCollectionScanOptions, ReadPreference, ReplaceOneOptions, UnorderedBulkOperation, UpdateWriteOpResult } from "./typings";
 import { Connection } from "../../connection/Connection";
 import { ReadStream } from "../../platform/PlatformTools";
 import { MongoEntityManager } from "../../entity-manager/MongoEntityManager";
@@ -12,6 +13,7 @@ import { SqlInMemory } from "../SqlInMemory";
 import { TableUnique } from "../../schema-builder/table/TableUnique";
 import { Broadcaster } from "../../subscriber/Broadcaster";
 import { TableCheck } from "../../schema-builder/table/TableCheck";
+import { TableExclusion } from "../../schema-builder/table/TableExclusion";
 /**
  * Runs queries on a single MongoDB connection.
  */
@@ -49,6 +51,10 @@ export declare class MongoQueryRunner implements QueryRunner {
      */
     loadedTables: Table[];
     /**
+     * All synchronized views in the database.
+     */
+    loadedViews: View[];
+    /**
      * Real database connection from a connection pool used to perform queries.
      */
     databaseConnection: Db;
@@ -64,7 +70,7 @@ export declare class MongoQueryRunner implements QueryRunner {
     /**
      * Perform a bulkWrite operation without a fluent API.
      */
-    bulkWrite(collectionName: string, operations: ObjectLiteral[], options?: CollectionBluckWriteOptions): Promise<BulkWriteOpResultObject>;
+    bulkWrite(collectionName: string, operations: ObjectLiteral[], options?: CollectionBulkWriteOptions): Promise<BulkWriteOpResultObject>;
     /**
      * Count number of matching documents in the db to a query.
      */
@@ -189,7 +195,7 @@ export declare class MongoQueryRunner implements QueryRunner {
      */
     rename(collectionName: string, newName: string, options?: {
         dropTarget?: boolean;
-    }): Promise<Collection>;
+    }): Promise<Collection<any>>;
     /**
      * Replace a document on MongoDB.
      */
@@ -200,6 +206,10 @@ export declare class MongoQueryRunner implements QueryRunner {
     stats(collectionName: string, options?: {
         scale: number;
     }): Promise<CollStats>;
+    /**
+     * Watching new changes as stream.
+     */
+    watch(collectionName: string, pipeline?: Object[], options?: ChangeStreamOptions): ChangeStream;
     /**
      * Update multiple documents on MongoDB.
      */
@@ -298,6 +308,14 @@ export declare class MongoQueryRunner implements QueryRunner {
      */
     getTables(collectionNames: string[]): Promise<Table[]>;
     /**
+     * Loads given views's data from the database.
+     */
+    getView(collectionName: string): Promise<View | undefined>;
+    /**
+     * Loads all views (with given names) from the database and creates a Table from them.
+     */
+    getViews(collectionNames: string[]): Promise<View[]>;
+    /**
      * Checks if database with the given name exist.
      */
     hasDatabase(database: string): Promise<boolean>;
@@ -337,6 +355,14 @@ export declare class MongoQueryRunner implements QueryRunner {
      * Drops the table.
      */
     dropTable(tableName: Table | string): Promise<void>;
+    /**
+     * Creates a new view.
+     */
+    createView(view: View): Promise<void>;
+    /**
+     * Drops the view.
+     */
+    dropView(target: View | string): Promise<void>;
     /**
      * Renames the given table.
      */
@@ -417,6 +443,22 @@ export declare class MongoQueryRunner implements QueryRunner {
      */
     dropCheckConstraints(tableOrName: Table | string, checkConstraints: TableCheck[]): Promise<void>;
     /**
+     * Creates a new exclusion constraint.
+     */
+    createExclusionConstraint(tableOrName: Table | string, exclusionConstraint: TableExclusion): Promise<void>;
+    /**
+     * Creates a new exclusion constraints.
+     */
+    createExclusionConstraints(tableOrName: Table | string, exclusionConstraints: TableExclusion[]): Promise<void>;
+    /**
+     * Drops exclusion constraint.
+     */
+    dropExclusionConstraint(tableOrName: Table | string, exclusionOrName: TableExclusion | string): Promise<void>;
+    /**
+     * Drops exclusion constraints.
+     */
+    dropExclusionConstraints(tableOrName: Table | string, exclusionConstraints: TableExclusion[]): Promise<void>;
+    /**
      * Creates a new foreign key.
      */
     createForeignKey(tableOrName: Table | string, foreignKey: TableForeignKey): Promise<void>;
@@ -484,5 +526,5 @@ export declare class MongoQueryRunner implements QueryRunner {
     /**
      * Gets collection from the database with a given name.
      */
-    protected getCollection(collectionName: string): Collection;
+    protected getCollection(collectionName: string): Collection<any>;
 }

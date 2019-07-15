@@ -6,5 +6,5 @@ import { EntitySchema } from "../index";
 export declare class EntityNotFoundError extends Error {
     name: string;
     constructor(entityClass: ObjectType<any> | EntitySchema<any> | string, criteria: any);
-    private stringifyCriteria(criteria);
+    private stringifyCriteria;
 }

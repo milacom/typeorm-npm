@@ -1,25 +1,6 @@
 "use strict";
-var __read = (this && this.__read) || function (o, n) {
-    var m = typeof Symbol === "function" && o[Symbol.iterator];
-    if (!m) return o;
-    var i = m.call(o), r, ar = [], e;
-    try {
-        while ((n === void 0 || n-- > 0) && !(r = i.next()).done) ar.push(r.value);
-    }
-    catch (error) { e = { error: error }; }
-    finally {
-        try {
-            if (r && !r.done && (m = i["return"])) m.call(i);
-        }
-        finally { if (e) throw e.error; }
-    }
-    return ar;
-};
-var __spread = (this && this.__spread) || function () {
-    for (var ar = [], i = 0; i < arguments.length; i++) ar = ar.concat(__read(arguments[i]));
-    return ar;
-};
 Object.defineProperty(exports, "__esModule", { value: true });
+var tslib_1 = require("tslib");
 var MongoDriver_1 = require("../driver/mongodb/MongoDriver");
 /**
  * Contains all information about entity's embedded property.
@@ -46,6 +27,10 @@ var EmbeddedMetadata = /** @class */ (function () {
          */
         this.indices = [];
         /**
+         * Uniques applied to the embed columns.
+         */
+        this.uniques = [];
+        /**
          * Relation ids inside this embed.
          */
         this.relationIds = [];
@@ -60,7 +45,7 @@ var EmbeddedMetadata = /** @class */ (function () {
         /**
          * Indicates if this embedded is in array mode.
          *
-         * This option works only in monogodb.
+         * This option works only in mongodb.
          */
         this.isArray = false;
         /**
@@ -102,6 +87,10 @@ var EmbeddedMetadata = /** @class */ (function () {
          */
         this.indicesFromTree = [];
         /**
+         * Uniques of this embed and all uniques from its child embeds.
+         */
+        this.uniquesFromTree = [];
+        /**
          * Relation ids of this embed and all relation ids from its child embeds.
          */
         this.relationIdsFromTree = [];
@@ -138,6 +127,7 @@ var EmbeddedMetadata = /** @class */ (function () {
         this.relationsFromTree = this.buildRelationsFromTree();
         this.listenersFromTree = this.buildListenersFromTree();
         this.indicesFromTree = this.buildIndicesFromTree();
+        this.uniquesFromTree = this.buildUniquesFromTree();
         this.relationIdsFromTree = this.buildRelationIdsFromTree();
         this.relationCountsFromTree = this.buildRelationCountsFromTree();
         return this;
@@ -151,11 +141,11 @@ var EmbeddedMetadata = /** @class */ (function () {
             return [this.propertyName];
         }
         // if prefix option was set to empty string or explicity set to false - disable prefix
-        if (this.customPrefix === '' || this.customPrefix === false) {
+        if (this.customPrefix === "" || this.customPrefix === false) {
             return [];
         }
         // use custom prefix
-        if (typeof this.customPrefix === 'string') {
+        if (typeof this.customPrefix === "string") {
             return [this.customPrefix];
         }
         throw new Error("Invalid prefix option given for " + this.entityMetadata.targetName + "#" + this.propertyName);
@@ -166,7 +156,7 @@ var EmbeddedMetadata = /** @class */ (function () {
         var prefixes = [];
         if (this.parentEmbeddedMetadata)
             prefixes.push(this.parentEmbeddedMetadata.buildPrefix(connection));
-        prefixes.push.apply(prefixes, __spread(this.buildPartialPrefix()));
+        prefixes.push.apply(prefixes, tslib_1.__spread(this.buildPartialPrefix()));
         return prefixes.join("_"); // todo: use naming strategy instead of "_"  !!!
     };
     EmbeddedMetadata.prototype.buildParentPropertyNames = function () {
@@ -189,6 +179,9 @@ var EmbeddedMetadata = /** @class */ (function () {
     };
     EmbeddedMetadata.prototype.buildIndicesFromTree = function () {
         return this.embeddeds.reduce(function (relations, embedded) { return relations.concat(embedded.buildIndicesFromTree()); }, this.indices);
+    };
+    EmbeddedMetadata.prototype.buildUniquesFromTree = function () {
+        return this.embeddeds.reduce(function (relations, embedded) { return relations.concat(embedded.buildUniquesFromTree()); }, this.uniques);
     };
     EmbeddedMetadata.prototype.buildRelationIdsFromTree = function () {
         return this.embeddeds.reduce(function (relations, embedded) { return relations.concat(embedded.buildRelationIdsFromTree()); }, this.relationIds);

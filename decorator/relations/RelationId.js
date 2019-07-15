@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-var _1 = require("../../");
+var __1 = require("../../");
 /**
  * Special decorator used to extract relation id into separate entity property.
  *
@@ -8,7 +8,7 @@ var _1 = require("../../");
  */
 function RelationId(relation, alias, queryBuilderFactory) {
     return function (object, propertyName) {
-        _1.getMetadataArgsStorage().relationIds.push({
+        __1.getMetadataArgsStorage().relationIds.push({
             target: object.constructor,
             propertyName: propertyName,
             relation: relation,

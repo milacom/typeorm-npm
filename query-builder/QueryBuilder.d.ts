@@ -10,7 +10,7 @@ import { RelationQueryBuilder } from "./RelationQueryBuilder";
 import { ObjectType } from "../common/ObjectType";
 import { Alias } from "./Alias";
 import { Brackets } from "./Brackets";
-import { QueryPartialEntity } from "./QueryPartialEntity";
+import { QueryDeepPartialEntity } from "./QueryPartialEntity";
 import { ColumnMetadata } from "../metadata/ColumnMetadata";
 import { EntitySchema } from "../";
 /**
@@ -71,23 +71,23 @@ export declare abstract class QueryBuilder<Entity> {
     /**
      * Creates UPDATE query and applies given update values.
      */
-    update(updateSet: QueryPartialEntity<Entity>): UpdateQueryBuilder<Entity>;
+    update(updateSet: QueryDeepPartialEntity<Entity>): UpdateQueryBuilder<Entity>;
     /**
      * Creates UPDATE query for the given entity and applies given update values.
      */
-    update<T>(entity: ObjectType<T>, updateSet?: QueryPartialEntity<T>): UpdateQueryBuilder<T>;
+    update<T>(entity: ObjectType<T>, updateSet?: QueryDeepPartialEntity<T>): UpdateQueryBuilder<T>;
     /**
      * Creates UPDATE query for the given entity and applies given update values.
      */
-    update<T>(entity: EntitySchema<T>, updateSet?: QueryPartialEntity<T>): UpdateQueryBuilder<T>;
+    update<T>(entity: EntitySchema<T>, updateSet?: QueryDeepPartialEntity<T>): UpdateQueryBuilder<T>;
     /**
      * Creates UPDATE query for the given entity and applies given update values.
      */
-    update(entity: Function | EntitySchema<Entity> | string, updateSet?: QueryPartialEntity<Entity>): UpdateQueryBuilder<Entity>;
+    update(entity: Function | EntitySchema<Entity> | string, updateSet?: QueryDeepPartialEntity<Entity>): UpdateQueryBuilder<Entity>;
     /**
      * Creates UPDATE query for the given table name and applies given update values.
      */
-    update(tableName: string, updateSet?: QueryPartialEntity<Entity>): UpdateQueryBuilder<Entity>;
+    update(tableName: string, updateSet?: QueryDeepPartialEntity<Entity>): UpdateQueryBuilder<Entity>;
     /**
      * Creates DELETE query.
      */
@@ -176,11 +176,6 @@ export declare abstract class QueryBuilder<Entity> {
      * Enabled by default.
      */
     callListeners(enabled: boolean): this;
-    /**
-     * Indicates if observers must be called before and after query execution.
-     * Enabled by default.
-     */
-    callObservers(enabled: boolean): this;
     /**
      * If set to true the query will be wrapped into a transaction.
      */

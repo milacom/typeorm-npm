@@ -26,6 +26,7 @@ export declare class DefaultNamingStrategy implements NamingStrategyInterface {
     foreignKeyName(tableOrName: Table | string, columnNames: string[]): string;
     indexName(tableOrName: Table | string, columnNames: string[], where?: string): string;
     checkConstraintName(tableOrName: Table | string, expression: string): string;
+    exclusionConstraintName(tableOrName: Table | string, expression: string): string;
     joinColumnName(relationName: string, referencedColumnName: string): string;
     joinTableName(firstTableName: string, secondTableName: string, firstPropertyName: string, secondPropertyName: string): string;
     joinTableColumnDuplicationPrefix(columnName: string, index: number): string;
@@ -38,4 +39,5 @@ export declare class DefaultNamingStrategy implements NamingStrategyInterface {
      * Note that table name comes here already normalized by #tableName method.
      */
     prefixTableName(prefix: string, tableName: string): string;
+    eagerJoinRelationAlias(alias: string, propertyPath: string): string;
 }

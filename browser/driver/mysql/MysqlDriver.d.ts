@@ -52,7 +52,7 @@ export declare class MysqlDriver implements Driver {
      * Gets list of supported column data types by a driver.
      *
      * @see https://www.tutorialspoint.com/mysql/mysql-data-types.htm
-     * @see https://dev.mysql.com/doc/refman/5.7/en/data-types.html
+     * @see https://dev.mysql.com/doc/refman/8.0/en/data-types.html
      */
     supportedDataTypes: ColumnType[];
     /**
@@ -89,6 +89,11 @@ export declare class MysqlDriver implements Driver {
      * Used in the cases when length/precision/scale is not specified by user.
      */
     dataTypeDefaults: DataTypeDefaults;
+    /**
+     * Max length allowed by MySQL for aliases.
+     * @see https://dev.mysql.com/doc/refman/5.5/en/identifiers.html
+     */
+    maxAliasLength: number;
     constructor(connection: Connection);
     /**
      * Performs connection to the database.
@@ -205,7 +210,7 @@ export declare class MysqlDriver implements Driver {
     /**
      * Attaches all required base handlers to a database connection, such as the unhandled error handler.
      */
-    private prepareDbConnection(connection);
+    private prepareDbConnection;
     /**
      * Checks if "DEFAULT" values in the column metadata and in the database are equal.
      */

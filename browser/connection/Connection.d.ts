@@ -1,5 +1,4 @@
 import { Driver } from "../driver/Driver";
-import { QueryObserver } from "../observer/QueryObserver";
 import { Repository } from "../repository/Repository";
 import { EntitySubscriberInterface } from "../subscriber/EntitySubscriberInterface";
 import { ObjectType } from "../common/ObjectType";
@@ -9,6 +8,7 @@ import { NamingStrategyInterface } from "../naming-strategy/NamingStrategyInterf
 import { EntityMetadata } from "../metadata/EntityMetadata";
 import { Logger } from "../logger/Logger";
 import { MigrationInterface } from "../migration/MigrationInterface";
+import { Migration } from "../migration/Migration";
 import { MongoRepository } from "../repository/MongoRepository";
 import { MongoEntityManager } from "../entity-manager/MongoEntityManager";
 import { ConnectionOptions } from "./ConnectionOptions";
@@ -19,6 +19,7 @@ import { SqljsEntityManager } from "../entity-manager/SqljsEntityManager";
 import { RelationLoader } from "../query-builder/RelationLoader";
 import { RelationIdLoader } from "../query-builder/RelationIdLoader";
 import { EntitySchema } from "../";
+import { IsolationLevel } from "../driver/types/IsolationLevel";
 /**
  * Connection is a single database ORM connection to a specific database.
  * Its not required to be a database connection, depend on database type it can create connection pool.
@@ -61,10 +62,6 @@ export declare class Connection {
      * Entity subscriber instances that are registered for this connection.
      */
     readonly subscribers: EntitySubscriberInterface<any>[];
-    /**
-     * Observers observing queries.
-     */
-    readonly observers: QueryObserver[];
     /**
      * All entity metadatas that are registered for this connection.
      */
@@ -126,7 +123,7 @@ export declare class Connection {
      */
     runMigrations(options?: {
         transaction?: boolean;
-    }): Promise<void>;
+    }): Promise<Migration[]>;
     /**
      * Reverts last executed migration.
      * Can be used only after connection to the database is established.
@@ -134,6 +131,11 @@ export declare class Connection {
     undoLastMigration(options?: {
         transaction?: boolean;
     }): Promise<void>;
+    /**
+     * Lists all migrations and whether they have been run.
+     * Returns true if there are no pending migrations
+     */
+    showMigrations(): Promise<boolean>;
     /**
      * Checks if entity metadata exist for the given entity class, target name or table name.
      */
@@ -164,7 +166,8 @@ export declare class Connection {
      * Wraps given function execution (and all operations made there) into a transaction.
      * All database operations must be executed using provided entity manager.
      */
-    transaction(runInTransaction: (entityManager: EntityManager) => Promise<any>): Promise<any>;
+    transaction<T>(runInTransaction: (entityManager: EntityManager) => Promise<T>): Promise<T>;
+    transaction<T>(isolationLevel: IsolationLevel, runInTransaction: (entityManager: EntityManager) => Promise<T>): Promise<T>;
     /**
      * Executes raw SQL query and returns raw database results.
      */

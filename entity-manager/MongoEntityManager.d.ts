@@ -1,19 +1,18 @@
 import { Connection } from "../connection/Connection";
 import { EntityManager } from "./EntityManager";
 import { ObjectType } from "../common/ObjectType";
-import { AggregationCursor, BulkWriteOpResultObject, Code, Collection, CollectionAggregationOptions, CollectionBluckWriteOptions, CollectionInsertManyOptions, CollectionInsertOneOptions, CollectionOptions, CollStats, CommandCursor, Cursor, DeleteWriteOpResultObject, FindAndModifyWriteOpResultObject, FindOneAndReplaceOption, GeoHaystackSearchOptions, GeoNearOptions, InsertOneWriteOpResult, InsertWriteOpResult, MapReduceOptions, MongoCountPreferences, MongodbIndexOptions, ObjectID, OrderedBulkOperation, ParallelCollectionScanOptions, ReadPreference, ReplaceOneOptions, UnorderedBulkOperation, UpdateWriteOpResult } from "../driver/mongodb/typings";
+import { AggregationCursor, BulkWriteOpResultObject, ChangeStream, ChangeStreamOptions, Code, Collection, CollectionAggregationOptions, CollectionBulkWriteOptions, CollectionInsertManyOptions, CollectionInsertOneOptions, CollectionOptions, CollStats, CommandCursor, Cursor, DeleteWriteOpResultObject, FindAndModifyWriteOpResultObject, FindOneAndReplaceOption, GeoHaystackSearchOptions, GeoNearOptions, InsertOneWriteOpResult, InsertWriteOpResult, MapReduceOptions, MongoCountPreferences, MongodbIndexOptions, ObjectID, OrderedBulkOperation, ParallelCollectionScanOptions, ReadPreference, ReplaceOneOptions, UnorderedBulkOperation, UpdateWriteOpResult } from "../driver/mongodb/typings";
 import { ObjectLiteral } from "../common/ObjectLiteral";
 import { MongoQueryRunner } from "../driver/mongodb/MongoQueryRunner";
+import { FindManyOptions } from "../find-options/FindManyOptions";
+import { FindOneOptions } from "../find-options/FindOneOptions";
 import { DeepPartial } from "../common/DeepPartial";
-import { QueryPartialEntity } from "../query-builder/QueryPartialEntity";
-import { SaveOptions } from "../repository/SaveOptions";
+import { QueryDeepPartialEntity } from "../query-builder/QueryPartialEntity";
 import { InsertResult } from "../query-builder/result/InsertResult";
 import { UpdateResult } from "../query-builder/result/UpdateResult";
-import { RemoveOptions } from "../repository/RemoveOptions";
 import { DeleteResult } from "../query-builder/result/DeleteResult";
 import { EntityMetadata } from "../metadata/EntityMetadata";
-import { EntitySchema, FindExtraOptions } from "../index";
-import { FindOptions, FindOptionsWhere } from "../find-options/FindOptions";
+import { EntitySchema, FindConditions } from "../index";
 /**
  * Entity manager supposed to work with any entity, automatically find its repository and call its methods,
  * whatever entity type are you passing.
@@ -29,22 +28,22 @@ export declare class MongoEntityManager extends EntityManager {
     /**
      * Finds entities that match given find options or conditions.
      */
-    find<Entity>(entityClassOrName: ObjectType<Entity> | EntitySchema<Entity> | string, optionsOrConditions?: FindOptions<Entity> | FindOptionsWhere<Entity>): Promise<Entity[]>;
+    find<Entity>(entityClassOrName: ObjectType<Entity> | EntitySchema<Entity> | string, optionsOrConditions?: FindManyOptions<Entity> | Partial<Entity>): Promise<Entity[]>;
     /**
      * Finds entities that match given find options or conditions.
      * Also counts all entities that match given conditions,
      * but ignores pagination settings (from and take options).
      */
-    findAndCount<Entity>(entityClassOrName: ObjectType<Entity> | EntitySchema<Entity> | string, optionsOrConditions?: FindOptions<Entity> | FindOptionsWhere<Entity>): Promise<[Entity[], number]>;
+    findAndCount<Entity>(entityClassOrName: ObjectType<Entity> | EntitySchema<Entity> | string, optionsOrConditions?: FindManyOptions<Entity> | Partial<Entity>): Promise<[Entity[], number]>;
     /**
      * Finds entities by ids.
      * Optionally find options can be applied.
      */
-    findByIds<Entity>(entityClassOrName: ObjectType<Entity> | EntitySchema<Entity> | string, ids: any[], optionsOrConditions?: FindOptions<Entity> | FindOptionsWhere<Entity>): Promise<Entity[]>;
+    findByIds<Entity>(entityClassOrName: ObjectType<Entity> | EntitySchema<Entity> | string, ids: any[], optionsOrConditions?: FindManyOptions<Entity> | Partial<Entity>): Promise<Entity[]>;
     /**
      * Finds first entity that matches given conditions and/or find options.
      */
-    findOne<Entity>(entityClassOrName: ObjectType<Entity> | EntitySchema<Entity> | string, optionsOrConditions?: string | string[] | number | number[] | Date | Date[] | ObjectID | ObjectID[] | FindOptions<Entity> | FindOptionsWhere<Entity>, maybeOptions?: FindOptions<Entity>): Promise<Entity | undefined>;
+    findOne<Entity>(entityClassOrName: ObjectType<Entity> | EntitySchema<Entity> | string, optionsOrConditions?: string | string[] | number | number[] | Date | Date[] | ObjectID | ObjectID[] | FindOneOptions<Entity> | DeepPartial<Entity>, maybeOptions?: FindOneOptions<Entity>): Promise<Entity | undefined>;
     /**
      * Inserts a given entity into the database.
      * Unlike save method executes a primitive operation without cascades, relations and other operations included.
@@ -52,21 +51,21 @@ export declare class MongoEntityManager extends EntityManager {
      * Does not check if entity exist in the database, so query will fail if duplicate entity is being inserted.
      * You can execute bulk inserts using this method.
      */
-    insert<Entity>(target: ObjectType<Entity> | EntitySchema<Entity> | string, entity: QueryPartialEntity<Entity> | QueryPartialEntity<Entity>[], options?: SaveOptions): Promise<InsertResult>;
+    insert<Entity>(target: ObjectType<Entity> | EntitySchema<Entity> | string, entity: QueryDeepPartialEntity<Entity> | QueryDeepPartialEntity<Entity>[]): Promise<InsertResult>;
     /**
      * Updates entity partially. Entity can be found by a given conditions.
      * Unlike save method executes a primitive operation without cascades, relations and other operations included.
      * Executes fast and efficient UPDATE query.
      * Does not check if entity exist in the database.
      */
-    update<Entity>(target: ObjectType<Entity> | EntitySchema<Entity> | string, criteria: string | string[] | number | number[] | Date | Date[] | ObjectID | ObjectID[] | FindOptionsWhere<Entity>, partialEntity: DeepPartial<Entity>, options?: SaveOptions): Promise<UpdateResult>;
+    update<Entity>(target: ObjectType<Entity> | EntitySchema<Entity> | string, criteria: string | string[] | number | number[] | Date | Date[] | ObjectID | ObjectID[] | FindConditions<Entity>, partialEntity: QueryDeepPartialEntity<Entity>): Promise<UpdateResult>;
     /**
      * Deletes entities by a given conditions.
      * Unlike save method executes a primitive operation without cascades, relations and other operations included.
      * Executes fast and efficient DELETE query.
      * Does not check if entity exist in the database.
      */
-    delete<Entity>(target: ObjectType<Entity> | EntitySchema<Entity> | string, criteria: string | string[] | number | number[] | Date | Date[] | ObjectID | ObjectID[] | FindOptionsWhere<Entity>, options?: RemoveOptions): Promise<DeleteResult>;
+    delete<Entity>(target: ObjectType<Entity> | EntitySchema<Entity> | string, criteria: string | string[] | number | number[] | Date | Date[] | ObjectID | ObjectID[] | FindConditions<Entity>): Promise<DeleteResult>;
     /**
      * Creates a cursor for a query that can be used to iterate over results from MongoDB.
      */
@@ -88,11 +87,11 @@ export declare class MongoEntityManager extends EntityManager {
     /**
      * Perform a bulkWrite operation without a fluent API.
      */
-    bulkWrite<Entity>(entityClassOrName: ObjectType<Entity> | EntitySchema<Entity> | string, operations: ObjectLiteral[], options?: CollectionBluckWriteOptions): Promise<BulkWriteOpResultObject>;
+    bulkWrite<Entity>(entityClassOrName: ObjectType<Entity> | EntitySchema<Entity> | string, operations: ObjectLiteral[], options?: CollectionBulkWriteOptions): Promise<BulkWriteOpResultObject>;
     /**
      * Count number of matching documents in the db to a query.
      */
-    count<Entity>(entityClassOrName: ObjectType<Entity> | EntitySchema<Entity> | string, query?: ObjectLiteral, options?: FindExtraOptions, mongoOptions?: MongoCountPreferences): Promise<number>;
+    count<Entity>(entityClassOrName: ObjectType<Entity> | EntitySchema<Entity> | string, query?: ObjectLiteral, options?: MongoCountPreferences): Promise<number>;
     /**
      * Creates an index on the db and collection.
      */
@@ -214,7 +213,7 @@ export declare class MongoEntityManager extends EntityManager {
      */
     rename<Entity>(entityClassOrName: ObjectType<Entity> | EntitySchema<Entity> | string, newName: string, options?: {
         dropTarget?: boolean;
-    }): Promise<Collection>;
+    }): Promise<Collection<any>>;
     /**
      * Replace a document on MongoDB.
      */
@@ -225,6 +224,7 @@ export declare class MongoEntityManager extends EntityManager {
     stats<Entity>(entityClassOrName: ObjectType<Entity> | EntitySchema<Entity> | string, options?: {
         scale: number;
     }): Promise<CollStats>;
+    watch<Entity>(entityClassOrName: ObjectType<Entity> | EntitySchema<Entity> | string, pipeline?: Object[], options?: ChangeStreamOptions): ChangeStream;
     /**
      * Update multiple documents on MongoDB.
      */
@@ -239,23 +239,27 @@ export declare class MongoEntityManager extends EntityManager {
      */
     updateOne<Entity>(entityClassOrName: ObjectType<Entity> | EntitySchema<Entity> | string, query: ObjectLiteral, update: ObjectLiteral, options?: ReplaceOneOptions): Promise<UpdateWriteOpResult>;
     /**
-     * Overrides cursor's toArray and next methods to convert results to entity automatically.
+     * Converts FindManyOptions to mongodb query.
      */
-    protected applyEntityTransformationToCursor<Entity>(metadata: EntityMetadata, cursor: Cursor<Entity> | AggregationCursor<Entity>): void;
-    /**
-     * Converts FindOptions to mongodb query.
-     */
-    protected convertFindOptionsOrConditionsToMongodbQuery<Entity>(optionsOrConditions: FindOptions<Entity> | FindOptionsWhere<Entity> | undefined): ObjectLiteral | undefined;
+    protected convertFindManyOptionsOrConditionsToMongodbQuery<Entity>(optionsOrConditions: FindManyOptions<Entity> | Partial<Entity> | undefined): ObjectLiteral | undefined;
     /**
      * Converts FindOneOptions to mongodb query.
      */
-    protected convertFindOneOptionsOrConditionsToMongodbQuery<Entity>(optionsOrConditions: FindOptions<Entity> | FindOptionsWhere<Entity> | undefined): ObjectLiteral | undefined;
+    protected convertFindOneOptionsOrConditionsToMongodbQuery<Entity>(optionsOrConditions: FindOneOptions<Entity> | Partial<Entity> | undefined): ObjectLiteral | undefined;
     /**
      * Converts FindOptions into mongodb order by criteria.
      */
     protected convertFindOptionsOrderToOrderCriteria(order: ObjectLiteral): ObjectLiteral;
     /**
+     * Converts FindOptions into mongodb select by criteria.
+     */
+    protected convertFindOptionsSelectToProjectCriteria(selects: (keyof any)[]): any;
+    /**
      * Ensures given id is an id for query.
      */
     protected convertMixedCriteria(metadata: EntityMetadata, idMap: any): ObjectLiteral;
+    /**
+     * Overrides cursor's toArray and next methods to convert results to entity automatically.
+     */
+    protected applyEntityTransformationToCursor<Entity>(metadata: EntityMetadata, cursor: Cursor<Entity> | AggregationCursor<Entity>): void;
 }

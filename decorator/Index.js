@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-var _1 = require("../");
+var __1 = require("../");
 /**
  * Creates a database index.
  * Can be used on entity property or on entity.
@@ -14,7 +14,7 @@ function Index(nameOrFieldsOrOptions, maybeFieldsOrOptions, maybeOptions) {
     if (!options)
         options = (typeof maybeFieldsOrOptions === "object" && !Array.isArray(maybeFieldsOrOptions)) ? maybeFieldsOrOptions : maybeOptions;
     return function (clsOrObject, propertyName) {
-        _1.getMetadataArgsStorage().indices.push({
+        __1.getMetadataArgsStorage().indices.push({
             target: propertyName ? clsOrObject.constructor : clsOrObject,
             name: name,
             columns: propertyName ? [propertyName] : fields,
@@ -23,7 +23,9 @@ function Index(nameOrFieldsOrOptions, maybeFieldsOrOptions, maybeOptions) {
             unique: options && options.unique ? true : false,
             spatial: options && options.spatial ? true : false,
             fulltext: options && options.fulltext ? true : false,
-            sparse: options && options.sparse ? true : false
+            sparse: options && options.sparse ? true : false,
+            background: options && options.background ? true : false,
+            expireAfterSeconds: options && options.expireAfterSeconds ? options.expireAfterSeconds : undefined
         });
     };
 }

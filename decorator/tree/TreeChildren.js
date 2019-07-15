@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-var _1 = require("../../");
+var __1 = require("../../");
 /**
  * Marks a entity property as a children of the tree.
  * "Tree children" will contain all children (bind) of this entity.
@@ -13,7 +13,7 @@ function TreeChildren(options) {
         var reflectedType = Reflect && Reflect.getMetadata ? Reflect.getMetadata("design:type", object, propertyName) : undefined;
         var isLazy = (reflectedType && typeof reflectedType.name === "string" && reflectedType.name.toLowerCase() === "promise") || false;
         // add one-to-many relation for this 
-        _1.getMetadataArgsStorage().relations.push({
+        __1.getMetadataArgsStorage().relations.push({
             isTreeChildren: true,
             target: object.constructor,
             propertyName: propertyName,

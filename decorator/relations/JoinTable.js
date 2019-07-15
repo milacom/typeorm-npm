@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-var _1 = require("../../");
+var __1 = require("../../");
 /**
  * JoinTable decorator is used in many-to-many relationship to specify owner side of relationship.
  * Its also used to set a custom junction table's name, column names and referenced columns.
@@ -8,7 +8,7 @@ var _1 = require("../../");
 function JoinTable(options) {
     return function (object, propertyName) {
         options = options || {};
-        _1.getMetadataArgsStorage().joinTables.push({
+        __1.getMetadataArgsStorage().joinTables.push({
             target: object.constructor,
             propertyName: propertyName,
             name: options.name,

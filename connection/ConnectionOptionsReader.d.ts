@@ -4,12 +4,26 @@ import { ConnectionOptions } from "./ConnectionOptions";
  * Can read from multiple file extensions including env, json, js, xml and yml.
  */
 export declare class ConnectionOptionsReader {
-    protected options: {
+    protected options?: {
+        /**
+         * Directory where ormconfig should be read from.
+         * By default its your application root (where your app package.json is located).
+         */
         root?: string | undefined;
+        /**
+         * Filename of the ormconfig configuration. By default its equal to "ormconfig".
+         */
         configName?: string | undefined;
     } | undefined;
     constructor(options?: {
+        /**
+         * Directory where ormconfig should be read from.
+         * By default its your application root (where your app package.json is located).
+         */
         root?: string | undefined;
+        /**
+         * Filename of the ormconfig configuration. By default its equal to "ormconfig".
+         */
         configName?: string | undefined;
     } | undefined);
     /**
@@ -36,7 +50,7 @@ export declare class ConnectionOptionsReader {
      */
     protected normalizeConnectionOptions(connectionOptions: ConnectionOptions | ConnectionOptions[]): ConnectionOptions[];
     /**
-     * Gets directory where configuration file should be located and configuration file name without extension.
+     * Gets directory where configuration file should be located and configuration file name.
      */
     protected readonly baseFilePath: string;
     /**

@@ -5,7 +5,7 @@ import { Logger } from "./Logger";
  * This version of logger logs everything into ormlogs.log file.
  */
 export declare class FileLogger implements Logger {
-    private options;
+    private options?;
     constructor(options?: boolean | "all" | ("log" | "info" | "warn" | "query" | "schema" | "error" | "migration")[] | undefined);
     /**
      * Logs query and parameters used in it.

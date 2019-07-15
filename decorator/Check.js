@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-var _1 = require("../");
+var __1 = require("../");
 /**
  * Creates a database check.
  * Can be used on entity property or on entity.
@@ -12,7 +12,7 @@ function Check(nameOrExpression, maybeExpression) {
     if (!expression)
         throw new Error("Check expression is required");
     return function (clsOrObject, propertyName) {
-        _1.getMetadataArgsStorage().checks.push({
+        __1.getMetadataArgsStorage().checks.push({
             target: propertyName ? clsOrObject.constructor : clsOrObject,
             name: name,
             expression: expression

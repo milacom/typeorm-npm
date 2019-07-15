@@ -64,11 +64,11 @@ var AdvancedConsoleLogger = /** @class */ (function () {
         switch (level) {
             case "log":
                 if (this.options === "all" || (this.options instanceof Array && this.options.indexOf("log") !== -1))
-                    console.log(message);
+                    PlatformTools_1.PlatformTools.log(message);
                 break;
             case "info":
                 if (this.options === "all" || (this.options instanceof Array && this.options.indexOf("info") !== -1))
-                    console.info(message);
+                    PlatformTools_1.PlatformTools.logInfo("INFO:", message);
                 break;
             case "warn":
                 if (this.options === "all" || (this.options instanceof Array && this.options.indexOf("warn") !== -1))
